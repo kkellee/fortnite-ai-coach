@@ -28,4 +28,4 @@ Provider integration tests; privacy/access rules for each player's records and c
 
 ## Visual direction
 
-Working name FORTNITE AI COACH, dark olive/charcoal with lime accents, bold typography, restrained tactical SVG illustration. This is original illustrative geometry, not a Fortnite map. No implied Epic affiliation. Responsive phone-first app navigation, overview, plan, coach, review, journal, profile. Source icons are hand-authored SVG; optional Manrope font from Google Fonts.
+Name: Fortnite AI Coach. Owner requested a light, maximally minimal design on 2026-10-24. White and pale gray surfaces, blue accent, generous spacing and an official Fortnite landscape image in the hero. The image is archival and does not describe the current map or meta. No implied Epic affiliation. Responsive phone-first app navigation, overview, plan, coach, review, journal, profile. Source icons are hand-authored SVG; optional Manrope font from Google Fonts.
