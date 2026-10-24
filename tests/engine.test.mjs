@@ -1,0 +1,17 @@
+import test from 'node:test';import assert from 'node:assert/strict';
+import {freshState,validProfile,makePlan,summary,coachReply,parseState,dayKey} from '../dist/engine.mjs';
+const profile={nick:'wheatǃ',mode:'Battle Royale',team:'Trio',build:'Build',role:'IGL',focus:'Ротации',minutes:40};
+test('validates required profile and mode',()=>{assert.ok(validProfile(profile));assert.equal(validProfile({...profile,mode:'unknown'}),false);assert.equal(validProfile({...profile,nick:''}),false);});
+test('plan never exceeds selected budget',()=>{for(const minutes of [20,40,60,90])for(const energy of [1,2,3,4,5]){const p=makePlan({...profile,minutes},{energy});assert.equal(p.length,3);assert.ok(p.every(t=>t.minutes>0));assert.equal(p.reduce((n,t)=>n+t.minutes,0),energy<=2?Math.min(20,minutes):minutes);}});
+test('solo communication focus produces own decision exercise',()=>{const p=makePlan({...profile,team:'Solo',focus:'Коммуникация'});assert.match(p[0].title,/выход/);assert.match(p[1].steps[1],/своё решение/);});
+test('support plan treats support as second fragger',()=>assert.match(makePlan({...profile,role:'Саппорт'})[1].steps[1],/второго фраггера/));
+test('zero build review uses cover rather than requiring tarp',()=>assert.match(makePlan({...profile,build:'Zero Build',focus:'Late game'})[0].steps[1],/Zero Build/));
+test('no results does not invent player rating',()=>{const s={...freshState(),profile};assert.match(summary(s),/результатов пока нет/);assert.match(summary(s),/нельзя/);});
+test('report computes only provided early-game rate',()=>{const s={...freshState(),profile,sessions:[{matches:10,early:3},{matches:10,early:5}]};assert.match(summary(s),/40%/);assert.match(summary(s),/введённые тобой/);});
+test('unknown meta produces explicit abstention',()=>assert.match(coachReply('Какое оружие в мете?',{profile}),/пока не проверена/));
+test('clip message never claims the file was analysed',()=>assert.match(coachReply('Разбери мой клип',{profile}),/не распознаю/));
+test('unknown dialogue explicitly discloses rule based mode',()=>assert.match(coachReply('беседа',{profile}),/без языковой модели/));
+test('import filters malformed completion and checkin objects',()=>{const s=parseState({...freshState(),profile,completed:{'2026-10-23':['review','review','invalid'],'bad':['log'],'2026-10-24':3},checkins:{'2026-10-23':{sleep:99,energy:1}}});assert.deepEqual(s.completed,{'2026-10-23':['review']});assert.deepEqual(s.checkins,{});});
+test('missing stats stay null and zero earnings stays zero',()=>{const s=parseState({...freshState(),profile,stats:{earnings:0,pr:-1}});assert.equal(s.stats.earnings,0);assert.equal(s.stats.pr,null);assert.equal(s.stats.events,null);});
+test('unsupported backup rejects instead of overwriting',()=>assert.throws(()=>parseState({version:2,profile})));
+test('local day key does not use UTC day',()=>assert.equal(dayKey(new Date(2026,9,23,0,1)),'2026-10-23'));
