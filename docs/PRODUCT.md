@@ -28,4 +28,4 @@ Provider integration tests; privacy/access rules for each player's records and c
 
 ## Visual direction
 
-Working name NEXT DROP, dark olive/charcoal with lime accents, bold typography, restrained tactical SVG illustration. This is original illustrative geometry, not a Fortnite map. No implied Epic affiliation. Responsive phone-first app navigation, overview, plan, coach, review, journal, profile. Source icons are hand-authored SVG; optional Manrope font from Google Fonts.
+Working name FORTNITE AI COACH, dark olive/charcoal with lime accents, bold typography, restrained tactical SVG illustration. This is original illustrative geometry, not a Fortnite map. No implied Epic affiliation. Responsive phone-first app navigation, overview, plan, coach, review, journal, profile. Source icons are hand-authored SVG; optional Manrope font from Google Fonts.

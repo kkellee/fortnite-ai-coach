@@ -7,7 +7,7 @@ export const freshState=()=>({version:1,profile:null,checkins:{},completed:{},se
 export function validProfile(p){return !!p && typeof p.nick==='string' && p.nick.trim().length>0 && p.nick.length<=32 && MODES.includes(p.mode) && TEAMS.includes(p.team) && ['Build','Zero Build'].includes(p.build) && (p.team==='Solo'||ROLES.includes(p.role)) && FOCI.includes(p.focus) && [20,40,60,90].includes(Number(p.minutes));}
 export function parseState(raw){
  const s=typeof raw==='string'?JSON.parse(raw):raw;
- if(!s||s.version!==1||!validProfile(s.profile))throw Error('Файл не содержит совместимый профиль NEXT DROP.');
+ if(!s||s.version!==1||!validProfile(s.profile))throw Error('Файл не содержит совместимый профиль FORTNITE AI COACH.');
  const out=freshState();out.profile={...s.profile,nick:s.profile.nick.trim(),minutes:Number(s.profile.minutes)};
  for(const [date,v] of Object.entries(s.checkins||{})){if(/^\d{4}-\d{2}-\d{2}$/.test(date)&&v&&Number.isFinite(v.sleep)&&v.sleep>=0&&v.sleep<=24&&Number.isInteger(v.energy)&&v.energy>=1&&v.energy<=5)out.checkins[date]={sleep:v.sleep,energy:v.energy};}
  for(const [date,v] of Object.entries(s.completed||{})){if(/^\d{4}-\d{2}-\d{2}$/.test(date)&&Array.isArray(v))out.completed[date]=[...new Set(v.filter(x=>['review','practice','log'].includes(x)))];}

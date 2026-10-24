@@ -1,4 +1,4 @@
-# NEXT DROP — Fortnite practice coach
+# FORTNITE AI COACH — Fortnite practice coach
 
 Russian-language first working version. Separate from PLAYER-SCAN (Dota).
 
