@@ -1,0 +1,13 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {newCase,moveCase,cleanCases,safeLink,questions} from '../dist/workflow.mjs';
+import {validateFile} from '../dist/evidence.mjs';
+import {parseState,freshState} from '../dist/engine.mjs';
+const p={nick:'Test',mode:'Battle Royale',team:'Trio',build:'Build',role:'IGL',focus:'Контест за локу',minutes:40};
+const make=()=>newCase(p,'case-1','2026-10-25');
+test('cannot finish a case or start practice without context and outcome',()=>{const c=make();assert.throws(()=>moveCase(c,'finish'));assert.throws(()=>moveCase(c,'discuss'));c.note='Проиграли контест';const d=moveCase(c,'discuss');assert.throws(()=>moveCase(d,'practice'));});
+test('full workflow records three answers and requires both action and measure',()=>{let c={...make(),note:'Контест'};c=moveCase(c,'discuss');for(const text of ['лут','колл','гипотеза'])c=moveCase(c,'answer',{text});assert.throws(()=>moveCase(c,'answer',{text:'лишний'}));assert.throws(()=>moveCase(c,'practice'));c.action='Дождаться ответа';c.measure='Колл и совместный заход';c=moveCase(c,'practice');assert.throws(()=>moveCase(c,'finish'));c.outcome='Не встретили соперников';c.next='Проверить в следующей сессии';assert.equal(moveCase(c,'finish').stage,'complete');});
+test('existing profiles migrate without loss and cases survive export/import',()=>{const s={...freshState(),profile:p};assert.deepEqual(parseState(s).cases,[]);s.cases=[{...make(),note:'Test',answers:['A'],files:[{id:'file-1',name:'clip.mp4',size:5,type:'video/mp4'}]}];s.activeCase='case-1';assert.deepEqual(parseState(JSON.stringify(s)).cases,s.cases);});
+test('untrusted imported case fields and unsafe links are filtered',()=>{assert.equal(safeLink('javascript:alert(1)'),'');assert.equal(safeLink('https://user:pass@example.com'),'');assert.equal(cleanCases([{...make(),id:'" onclick=evil'}]).length,0);const c=cleanCases([{...make(),answers:[{},'ok'],files:[{id:'bad!',name:'x',size:0}]}])[0];assert.deepEqual(c.answers,['ok']);assert.deepEqual(c.files,[]);});
+test('file constraints prevent unsupported or oversized evidence',()=>{assert.throws(()=>validateFile({name:'x.html',size:10},[]));assert.throws(()=>validateFile({name:'x.mp4',size:100*1024*1024+1},[]));assert.throws(()=>validateFile({name:'x.png',size:1},[{size:1},{size:1},{size:1}]));validateFile({name:'test.replay',size:100},[]);});
+test('questions reflect solo, support and zero build context',()=>{assert.match(questions({...make(),role:'Solo'})[1],/ты принял/);assert.match(questions({...make(),role:'Саппорт'})[1],/второй фраггер/);assert.match(questions({...make(),focus:'Late game',build:'Zero Build'})[0],/укрытия/);});

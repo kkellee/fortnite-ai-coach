@@ -29,3 +29,7 @@ Provider integration tests; privacy/access rules for each player's records and c
 ## Visual direction
 
 Name: Fortnite AI Coach. Owner requested a light, maximally minimal design on 2026-10-24. White and pale gray surfaces, blue accent, generous spacing and an official Fortnite landscape image in the hero. The image is archival and does not describe the current map or meta. No implied Epic affiliation. Responsive phone-first app navigation, overview, plan, coach, review, journal, profile. Source icons are hand-authored SVG; optional Manrope font from Google Fonts.
+
+## Connected practice workflow — 2026-10-25
+
+Plan, coach and review routes now share a case workspace: material → three contextual questions → player-authored action and measurement → outcome and next step. Finishing writes a linked journal entry. This is a guided self-review, explicitly NOT an LLM or automated media verdict. Cases and text drafts persist in localStorage; up to three files / 100 MB per case persist in IndexedDB. JSON backups include text and metadata, not blobs; missing files are disclosed on import. Reset clears both stores. Previous messages remain readable. No provider integration, credentials or paid inference added.

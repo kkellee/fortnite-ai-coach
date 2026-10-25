@@ -1,3 +1,4 @@
+import {cleanCases} from './workflow.mjs';
 export const MODES = ['Battle Royale','Reload'];
 export const TEAMS = ['Solo','Duo','Trio'];
 export const ROLES = ['IGL','Фраггер','Саппорт'];
@@ -15,6 +16,7 @@ export function parseState(raw){
  if(Array.isArray(s.messages))out.messages=s.messages.filter(m=>m&&['coach','user'].includes(m.role)&&typeof m.text==='string'&&m.text.length<=5000).slice(-100);
  for(const k of ['pr','earnings','events']){const n=s.stats?.[k];out.stats[k]=Number.isFinite(n)&&n>=0?n:null;}
  if(s.review&&typeof s.review.note==='string')out.review={note:s.review.note.slice(0,3000),stage:String(s.review.stage||'').slice(0,50)};
+ out.cases=cleanCases(s.cases);out.activeCase=out.cases.some(c=>c.id===s.activeCase)?s.activeCase:out.cases[0]?.id;
  return out;
 }
 const drills={
