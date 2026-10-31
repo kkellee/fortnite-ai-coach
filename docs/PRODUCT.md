@@ -33,3 +33,9 @@ Name: Fortnite AI Coach. Owner requested a light, maximally minimal design on 20
 ## Connected practice workflow — 2026-10-25
 
 Plan, coach and review routes now share a case workspace: material → three contextual questions → player-authored action and measurement → outcome and next step. Finishing writes a linked journal entry. This is a guided self-review, explicitly NOT an LLM or automated media verdict. Cases and text drafts persist in localStorage; up to three files / 100 MB per case persist in IndexedDB. JSON backups include text and metadata, not blobs; missing files are disclosed on import. Reset clears both stores. Previous messages remain readable. No provider integration, credentials or paid inference added.
+
+## Local language model chat — 2026-10-26
+
+The coach route uses actual WebLLM 0.2.86 inference in a dedicated browser worker, Qwen3-4B q4f16 (q4f32 fallback). Explicit download button, progress, cancellation, generation stop, bounded history, draft persistence and real errors instead of rule-based fallback. No cloud inference charges or API keys. WebGPU and sufficient memory are required; device compatibility is not universal. Model files are fetched from jsDelivr/Hugging Face/MLC; message inference stays on-device. Context includes profile and current case text, not binary evidence or live statistics. This small general model is not a validated esports expert. General improvement focus starts with observations instead of a predetermined weakness. Early outcomes now have a plain Russian definition.
+
+Sources: https://webllm.mlc.ai/docs/user/get_started.html ; https://webllm.mlc.ai/docs/user/basic_usage.html ; https://github.com/mlc-ai/web-llm/blob/v0.2.86/src/config.ts

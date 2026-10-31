@@ -1,8 +1,9 @@
+import {GENERAL_FOCUS,cleanAI} from './ai-context.mjs';
 import {cleanCases} from './workflow.mjs';
 export const MODES = ['Battle Royale','Reload'];
 export const TEAMS = ['Solo','Duo','Trio'];
 export const ROLES = ['IGL','Фраггер','Саппорт'];
-export const FOCI = ['Контест за локу','Файты','Ротации','Late game','Коммуникация'];
+export const FOCI = [GENERAL_FOCUS,'Контест за локу','Файты','Ротации','Late game','Коммуникация'];
 export const dayKey = (d=new Date()) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 export const freshState=()=>({version:1,profile:null,checkins:{},completed:{},sessions:[],messages:[],stats:{pr:null,earnings:null,events:null},review:null});
 export function validProfile(p){return !!p && typeof p.nick==='string' && p.nick.trim().length>0 && p.nick.length<=32 && MODES.includes(p.mode) && TEAMS.includes(p.team) && ['Build','Zero Build'].includes(p.build) && (p.team==='Solo'||ROLES.includes(p.role)) && FOCI.includes(p.focus) && [20,40,60,90].includes(Number(p.minutes));}
@@ -17,9 +18,11 @@ export function parseState(raw){
  for(const k of ['pr','earnings','events']){const n=s.stats?.[k];out.stats[k]=Number.isFinite(n)&&n>=0?n:null;}
  if(s.review&&typeof s.review.note==='string')out.review={note:s.review.note.slice(0,3000),stage:String(s.review.stage||'').slice(0,50)};
  out.cases=cleanCases(s.cases);out.activeCase=out.cases.some(c=>c.id===s.activeCase)?s.activeCase:out.cases[0]?.id;
+ out.aiArchives=(Array.isArray(s.aiArchives)?s.aiArchives:[]).slice(0,5).map(a=>cleanAI(a));out.aiMessages=cleanAI(s.aiMessages);out.aiDraft=typeof s.aiDraft==='string'?s.aiDraft.slice(0,1800):'';
  return out;
 }
 const drills={
+ [GENERAL_FOCUS]:{title:'Найди, что повторяется в твоих матчах',steps:['Возьми три последние игры и для каждой запиши, где и при каких обстоятельствах закончился матч. Не выбирай заранее виноватое решение.','Отметь, что повторилось: не успел взять лут, не было плана ротации, проиграл размен или другое. Отдели наблюдение от своей версии причины.','Выбери один повторяющийся эпизод для разбора. Если общего пока нет, собери ещё наблюдения — не объявляй слабое место по одному матчу.'],metric:'Три короткие записи и одна проверяемая гипотеза, если есть основания.'},
  'Контест за локу':{title:'Разложи свой контест',steps:['Возьми один проигранный контест за свою локу. Останови запись перед первым контактом.','Запиши, где ты залендился, что видел о сопернике и какой лут реально был доступен. Отдельно отметь неизвестное.','Выбери одно решение, которое проверишь в следующем контесте. Сравни похожие условия, а не только исход файта.'],metric:'Отметь: решение выполнено / не выполнено; причина.'},
  'Файты':{title:'Проверь первый размен',steps:['Найди три первых размена в своих записях. Для каждого отметь позицию, укрытие и доступную информацию.','Выбери один повторяющийся момент: например, выход без укрытия. В следующей практике отслеживай именно его.','После каждого подходящего файта запиши, изменилось ли решение. Победа сама по себе не доказывает, что решение было верным.'],metric:'Считай подходящие ситуации и случаи, где выполнил выбранное действие.'},
  'Ротации':{title:'Разбери один выход в зону',steps:['Останови запись перед началом ротации: отметь зону, время, ресы, мобильность и известных соперников.','Назови два доступных маршрута и риск каждого. Не используй информацию, которую увидел только в реплее.','Сравни план с тем, что сделал. В следующей игре заранее сформулируй маршрут и условие его смены.'],metric:'Запиши, был ли план до выхода и из-за чего пришлось его менять.'},
@@ -43,7 +46,7 @@ export function makePlan(p,checkin={}){
 export function summary(s){
  const p=s.profile;if(!validProfile(p))return 'Сначала пройди стартовый опрос.';
  const games=s.sessions.reduce((n,x)=>n+x.matches,0),early=s.sessions.reduce((n,x)=>n+x.early,0);
- return `${p.nick}, твоя отправная точка — ${p.mode}, ${p.team}, ${p.build}${p.team==='Solo'?'':`, роль ${p.role}`}. Ты выбрал фокус «${p.focus}» и ${p.minutes} минут на сессию. Поэтому стартуем с одного решения в этом контексте и проверяем его в практике. ${games?`В твоём журнале ${games} матчей, из них ${early} завершились в early game (${Math.round(early/games*100)}%). Это введённые тобой данные, а не доказательство причины поражений.`:'Игровых результатов пока нет. Оценивать твой уровень или перспективы по одной анкете нельзя.'}`;
+ return `${p.nick}, твоя отправная точка — ${p.mode}, ${p.team}, ${p.build}${p.team==='Solo'?'':`, роль ${p.role}`}. Ты выбрал фокус «${p.focus}» и ${p.minutes} минут на сессию. Поэтому стартуем с одного решения в этом контексте и проверяем его в практике. ${games?`В твоём журнале ${games} матчей, из них ${early} отмечены как ранние вылеты (${Math.round(early/games*100)}%). Это введённые тобой данные, а не доказательство причины поражений.`:'Игровых результатов пока нет. Оценивать твой уровень или перспективы по одной анкете нельзя.'}`;
 }
 export function coachReply(text,s){
  const t=text.toLowerCase(),p=s.profile;

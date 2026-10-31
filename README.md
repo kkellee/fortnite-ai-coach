@@ -4,7 +4,7 @@ Russian-language first working version. Separate from PLAYER-SCAN (Dota).
 
 ## Run and test
 
-Requires Node.js 20+. No npm dependencies, no API keys, no paid services enabled.
+Requires Node.js 20+. No local npm dependencies, API keys or paid services. AI uses pinned WebLLM 0.2.86 from jsDelivr and downloads model weights on explicit user action.
 
     npm test
     npm start
@@ -13,18 +13,18 @@ Open http://127.0.0.1:4173. `dist/` is a buildless static website.
 
 ## Implemented
 
-Responsive landing page, four-step onboarding (mode, Build/Zero Build, Solo/Duo/Trio, role, focus, time), personalised rule-based practice plan, daily energy/sleep check-in, completion history, session journal, descriptive report from self-reported results, structured dialogue, local video/image preview, description of replay moments, manual PR/earnings/session entry, validated profile links, browser-local storage, JSON export/import and deletion. Accessibility: keyboard controls, labelled fields, native modal, live status, reduced motion.
+Responsive landing page and onboarding with an optional general-improvement focus. Connected case workflow: evidence, contextual questions, player-authored practice action, outcome, linked journal. Daily energy/sleep check-in, manual statistics and profile links. Separate free-form AI chat uses Qwen3-4B through WebLLM in a dedicated worker, including profile/current-case text, bounded recent history, streaming, cancellation and real failure states. Requires WebGPU and sufficient device memory; first download is about 2.5 GB. No canned replies replace failed inference. Accessibility includes labelled forms, native modal and status reporting.
 
 ## Not implemented — do not claim otherwise
 
-LLM inference, automatic tactical analysis of clips/screenshots, voice transcription, .replay parsing, pro-VOD comparison, cloud accounts/sync/storage, automatic Osirion/Tracker stats, verified season-meta recommendations, automatic patch monitoring and maintenance mode. The UI discloses these limitations. There are no made-up PR, player scores or talent predictions. No payment or advertising is enabled.
+Automatic tactical analysis of clips/screenshots, voice transcription, .replay parsing, pro-VOD comparison, cloud accounts/sync/storage, automatic Osirion/Tracker stats, verified season-meta recommendations, automatic patch monitoring and maintenance mode. The UI discloses these limitations. No payment or advertising is enabled.
 
-The chat is a limited rule-based prototype, not a language model. Practice exercises are initial hypotheses requiring domain review, not validated coaching claims. Current seasonal advice stays disabled until source verification and expert review.
+The AI is a small general language model, not a validated esports expert. It can make mistakes. Its system instruction prohibits inventing stats, claiming file access or asserting current meta. Guided case questions are separate from AI chat. Practice advice requires domain review. Device compatibility and response quality are not universal.
 
 ## Data
 
-Only browser-local text is persisted. Selected media stays on the device and is not persisted/uploaded. Export contains personal text and should be kept private. Different devices/origins do not share state. Google Fonts is optional; system font fallback is available. No analytics.
+Text persists in localStorage and evidence in IndexedDB (3 files / 100 MB per case). JSON export contains text and file metadata, not file bytes. Files and chat are not uploaded for inference. Model code/weights are fetched from jsDelivr, Hugging Face and MLC's repository; weights are cached by the browser. Different devices/origins do not share state. Google Fonts is optional. No analytics.
 
 ## Publishing
 
-`.openai/hosting.json` identifies the separate private Sites project. Use the Sites source workflow and deployment tools. Do not publish to or modify PLAYER-SCAN. A user GitHub repository is still pending because github.com browser access was explicitly blocked; do not bypass this restriction using alternate transports.
+`.github/workflows/pages.yml` publishes `dist/` through GitHub Pages on pushes to `main`. Enable GitHub Actions as the Pages source after pushing to a separate `fortnite-ai-coach` repository. `.openai/hosting.json` still identifies the existing Sites project; its public deployment stays independent. Do not modify PLAYER-SCAN. The browser AI model is experimental and has not been validated as a Fortnite coach.
