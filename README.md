@@ -1,30 +1,15 @@
-# FORTNITE AI COACH — Fortnite practice coach
+# Fortnite AI Coach
 
-Russian-language first working version. Separate from PLAYER-SCAN (Dota).
+Сайт игрока живёт на GitHub Pages. Чат рассчитан на серверную нейросеть Cloudflare Workers AI: посетителям не нужны ChatGPT, WebGPU или загрузка модели. Опубликованная версия останется прежней, пока изменения не отправлены на GitHub.
 
-## Run and test
+## Подключение AI
 
-Requires Node.js 20+. No local npm dependencies, API keys or paid services. AI uses pinned WebLLM 0.2.86 from jsDelivr and downloads model weights on explicit user action.
+Владелец проекта один раз создаёт бесплатный аккаунт Cloudflare и публикует Worker из `worker/index.mjs` с конфигурацией `wrangler.jsonc`. В каталоге проекта: `npx wrangler login`, затем `npx wrangler deploy`. Cloudflare выдаст адрес вида `https://fortnite-ai-coach-api.<subdomain>.workers.dev`. Вставить его в `dist/ai-config.mjs` как значение `AI_ENDPOINT` без завершающего `/`, затем отправить изменения на GitHub через GitHub Desktop. Посетители просто заходят на сайт и пишут в чат.
 
-    npm test
-    npm start
+Бесплатный план Cloudflare Workers AI даёт ограниченную дневную квоту; после её исчерпания чат покажет ошибку до обновления лимита. Для владельца платная подписка не требуется, пока используется Free plan. Код Worker ограничивает размер сообщений и разрешает запросы с сайта проекта, но публичный адрес нельзя считать защитой от всех видов злоупотребления. При росте аудитории понадобятся лимиты и защита от автоматических запросов.
 
-Open http://127.0.0.1:4173. `dist/` is a buildless static website.
+Текст беседы и профиль передаются Cloudflare для генерации ответа. Сайт пока хранит переписку локально в браузере. Видео, скриншоты и реплеи автоматически в AI не отправляются и не разбираются. Статистика Fortnite Tracker/Osirion автоматически не подтягивается; актуальная мета не проверяется автоматически.
 
-## Implemented
+## Проверка
 
-Responsive landing page and onboarding with an optional general-improvement focus. Connected case workflow: evidence, contextual questions, player-authored practice action, outcome, linked journal. Daily energy/sleep check-in, manual statistics and profile links. Separate free-form AI chat uses Qwen3-4B through WebLLM in a dedicated worker, including profile/current-case text, bounded recent history, streaming, cancellation and real failure states. Requires WebGPU and sufficient device memory; first download is about 2.5 GB. No canned replies replace failed inference. Accessibility includes labelled forms, native modal and status reporting.
-
-## Not implemented — do not claim otherwise
-
-Automatic tactical analysis of clips/screenshots, voice transcription, .replay parsing, pro-VOD comparison, cloud accounts/sync/storage, automatic Osirion/Tracker stats, verified season-meta recommendations, automatic patch monitoring and maintenance mode. The UI discloses these limitations. No payment or advertising is enabled.
-
-The AI is a small general language model, not a validated esports expert. It can make mistakes. Its system instruction prohibits inventing stats, claiming file access or asserting current meta. Guided case questions are separate from AI chat. Practice advice requires domain review. Device compatibility and response quality are not universal.
-
-## Data
-
-Text persists in localStorage and evidence in IndexedDB (3 files / 100 MB per case). JSON export contains text and file metadata, not file bytes. Files and chat are not uploaded for inference. Model code/weights are fetched from jsDelivr, Hugging Face and MLC's repository; weights are cached by the browser. Different devices/origins do not share state. Google Fonts is optional. No analytics.
-
-## Publishing
-
-`.github/workflows/pages.yml` publishes `dist/` through GitHub Pages on pushes to `main`. Enable GitHub Actions as the Pages source after pushing to a separate `fortnite-ai-coach` repository. `.openai/hosting.json` still identifies the existing Sites project; its public deployment stays independent. Do not modify PLAYER-SCAN. The browser AI model is experimental and has not been validated as a Fortnite coach.
+`node --test tests/*.test.mjs` проверяет основные сценарии и контракт Worker с подставленной моделью. Настоящий ответ Cloudflare можно проверить только после подключения аккаунта и публикации Worker. `node server.mjs` запускает локальный сайт на `http://127.0.0.1:4173`.

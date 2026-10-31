@@ -1,36 +1,50 @@
-import {buildMessages} from './ai-context.mjs';
-const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-let run=0;let api,worker,phase='idle',progress=0,detail='',error='',active=null,owner=null,timer,model='';
-const status=()=>({idle:'Нейросеть не запущена',loading:`Загрузка модели · ${Math.round(progress*100)}%`,ready:'Нейросеть готова',generating:'Нейросеть отвечает',error:'Нейросеть недоступна'}[phase]);
-function refresh(){if(location.hash==='#coach')api.render();}
-const visibleText=t=>t.replace(/<think>[\s\S]*?<\/think>/g,'').replace(/<think>[\s\S]*$/g,'').trim();
-function streamUI(){const text=document.querySelector('#ai-stream');if(text&&active)text.textContent=visibleText(active.text)||'Думаю…';const log=document.querySelector('#ai-log');if(log)log.scrollTop=log.scrollHeight;}
-function settle(kind){clearTimeout(timer);if(active){active.text=visibleText(active.text);active.status=kind;if(owner===api.getState())api.save();}active=null;owner=null;}
-function fail(message){settle('error');worker?.terminate();worker=null;phase='error';error=message;refresh();}
-export function resetAI(){run++;worker?.terminate();worker=null;settle('stopped');phase='idle';error='';}
-export function renderAIChat(){const s=api.getState(),messages=s.aiMessages||[];return `<div class="workspace ai-page"><div class="ws-heading"><div><span class="eyebrow">FORTNITE AI COACH · НЕЙРОСЕТЬ НА ТВОЁМ УСТРОЙСТВЕ</span><h1>Чат с AI-тренером</h1><p>Об игре, тренировках и о том, что тебя сейчас волнует.</p></div><a class="btn secondary" href="#plan">Мои разборы →</a></div><div class="ai-layout"><section class="card ai-window"><div class="ai-status"><strong>${status()}</strong><span>Qwen3 · 4B</span><button class="btn secondary" data-ai-new ${phase==='generating'?'disabled':''}>Новая беседа</button></div>${phase==='loading'?`<div class="ai-load"><progress max="1" value="${progress}"></progress><p>${esc(detail)}</p><button class="btn secondary" data-ai-cancel>Отменить загрузку</button></div>`:''}${['idle','error'].includes(phase)?`<div class="ai-load"><h2>Запусти настоящую языковую модель</h2><p>Без аккаунта и API-ключа. При первом запуске скачается около 2,5 ГБ. Модель использует видеопамять устройства; запуск может занять несколько минут.</p><p>Нужен браузер с WebGPU. На слабом устройстве модель может не запуститься. Скачанные файлы обычно остаются в кэше браузера.</p>${error?`<p class="error" role="alert">${esc(error)}</p>`:''}<button class="btn" data-ai-load>Загрузить и включить нейросеть</button></div>`:''}<div class="ai-log" id="ai-log" role="log" aria-label="Переписка с AI-тренером">${messages.length?messages.map(m=>`<div class="message ${m.role==='user'?'user':'coach'}"><small>${m.role==='user'?'ТЫ':esc(m.model||'AI · предыдущая модель')}${m.status==='stopped'?' · ОСТАНОВЛЕНО':m.status==='error'?' · ОТВЕТ НЕ ЗАВЕРШЁН':''}</small><div ${m===active?'id="ai-stream"':''}>${esc(visibleText(m.text)||(m===active?'Думаю…':'Ответ не получен.'))}</div></div>`).join(''):`<div class="ai-empty"><h2>Здесь можно написать своими словами</h2><p>Не знаешь, что проседает? Начни с этого. Хочешь обсудить день или задать другой вопрос — тоже можно.</p></div>`}</div><form id="ai-form" class="ws-compose"><label for="ai-message">Сообщение AI-тренеру</label><textarea id="ai-message" name="message" maxlength="1800" required placeholder="Хочу стать лучше, но не знаю, с чего начать…">${esc(s.aiDraft||'')}</textarea><div class="actions"><button class="btn" type="submit" ${phase!=='ready'?'disabled':''}>Отправить →</button>${phase==='generating'?'<button class="btn secondary" type="button" data-ai-stop>Остановить</button>':''}</div>${phase!=='ready'&&phase!=='generating'?'<p>Сначала включи модель кнопкой выше. Текст можно подготовить заранее.</p>':''}</form></section><aside class="stack">${(s.aiArchives||[]).length?`<details class="card"><summary>Последние 5 бесед</summary>${s.aiArchives.map((a,i)=>`<details><summary>Беседа ${i+1}</summary>${a.map(m=>`<p><strong>${m.role==='user'?'Ты':'AI'}:</strong> ${esc(visibleText(m.text))}</p>`).join('')}</details>`).join('')}</details>`:''}<section class="card"><h2>Контекст игрока</h2><p>${esc(s.profile.mode)} · ${esc(s.profile.team)} · ${esc(s.profile.team==='Solo'?'Все роли':s.profile.role)}</p><p>${esc(s.profile.focus)}</p><p>Модель получает профиль, текст текущего эпизода и последние сообщения. В беседе сохраняются последние 80 сообщений, но весь архив в контекст не помещается.</p></section><section class="card"><h3>Что умеет эта версия</h3><p>Свободный текстовый диалог. Ответ генерируется нейросетью, а не выбирается из шаблонов.</p><p>Это небольшая модель: она может ошибаться. Актуальная мета, просмотр файлов и автоматическая проверка статистики ей недоступны.</p><p>Сообщения обрабатываются на устройстве. При загрузке модели браузер обращается к jsDelivr, Hugging Face и репозиторию MLC.</p>${['ready','generating'].includes(phase)?'<button class="btn secondary" data-ai-cancel>Выключить модель</button>':''}</section></aside></div></div>`;}
-export function mountAI(){streamUI();}
-async function start(){if(['loading','ready','generating'].includes(phase))return;const attempt=++run;error='';phase='loading';progress=0;detail='Проверяю поддержку устройства…';refresh();
- try{
-  if(!navigator.gpu)throw Error('Этот браузер не предоставляет WebGPU. Открой сайт в актуальном Chrome или Edge на компьютере с поддержкой WebGPU.');
-  const adapter=await navigator.gpu.requestAdapter();if(!adapter)throw Error('WebGPU не нашёл совместимую видеокарту. Нейросеть на этом устройстве сейчас недоступна.');
-  if(phase!=='loading'||attempt!==run)return;
-  model=adapter.features.has('shader-f16')?'Qwen3-4B-q4f16_1-MLC':'Qwen3-4B-q4f32_1-MLC';
-  worker=new Worker(new URL('./ai-worker.mjs',import.meta.url),{type:'module'});
-  worker.onerror=()=>fail('Не удалось запустить модуль нейросети. Проверь соединение и доступность загрузки модели, затем повтори.');
-  worker.onmessage=({data})=>{if(attempt!==run)return;
-   if(data.type==='progress'){progress=Math.max(0,Math.min(1,data.progress||0));detail=progress<1?'Скачиваю и загружаю модель. Первый запуск может занять несколько минут.':'Подготавливаю модель к работе…';const bar=document.querySelector('.ai-load progress');if(bar)bar.value=progress;const info=document.querySelector('.ai-load p');if(info)info.textContent=detail;const label=document.querySelector('.ai-status strong');if(label)label.textContent=status();}
-   if(data.type==='ready'){clearTimeout(timer);phase='ready';refresh();}
-   if(data.type==='chunk'&&active){active.text+=data.text;streamUI();}
-   if(data.type==='done'){if(!active?.text.trim()&&active?.status!=='stopped'){fail('Модель вернула пустой ответ. Попробуй запустить её снова.');return;}settle(active?.status==='stopped'?'stopped':'complete');phase='ready';refresh();}
-   if(data.type==='error')fail('Модель не смогла выполнить запрос. Возможно, не хватило видеопамяти или прервалось скачивание. Попробуй закрыть тяжёлые вкладки и загрузить модель снова.');
-  };
-  timer=setTimeout(()=>fail('Загрузка занимает слишком долго. Проверь сеть и попробуй снова: уже скачанные части могут сохраниться в кэше.'),15*60*1000);
-  worker.postMessage({type:'load',model});
- }catch(e){if(attempt===run)fail(e.message);}
+import { AI_ENDPOINT } from './ai-config.mjs';
+const esc = value => String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
+let api, pending = false, controller = null, error = '';
+const ready = /^https:\/\/[^/]+\.workers\.dev$/.test(AI_ENDPOINT);
+function refresh() { if (location.hash === '#coach') api.render(); }
+function context(state) {
+  const p = state.profile || {};
+  const c = state.cases?.find(x => x.id === state.activeCase);
+  return JSON.stringify({ mode: p.mode, team: p.team, role: p.team === 'Solo' ? 'Solo' : p.role, focus: p.focus, minutes: p.minutes, episode: c?.note?.slice(0, 500) });
 }
-export function installAI(options){api=options;
- document.addEventListener('input',e=>{if(e.target.id==='ai-message'){api.getState().aiDraft=e.target.value;api.save();}});
- document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;if(b.hasAttribute('data-ai-new')&&phase!=='generating'){const s=api.getState();if(s.aiMessages?.length)s.aiArchives=[s.aiMessages.slice(-80),...(s.aiArchives||[])].slice(0,5);s.aiMessages=[];s.aiDraft='';api.save();refresh();}if(b.hasAttribute('data-ai-load'))start();if(b.hasAttribute('data-ai-cancel')){resetAI();refresh();}if(b.hasAttribute('data-ai-stop')){if(active)active.status='stopped';worker?.postMessage({type:'stop'});}});
- document.addEventListener('submit',e=>{if(e.target.id!=='ai-form')return;e.preventDefault();if(phase!=='ready'||!worker)return;const s=api.getState(),text=String(new FormData(e.target).get('message')).trim();if(!text)return;s.aiMessages||=[];s.aiMessages.push({role:'user',text,status:'complete'});const messages=buildMessages(s);active={role:'assistant',text:'',status:'generating',model:'Qwen3 · 4B'};s.aiMessages.push(active);s.aiMessages=s.aiMessages.slice(-80);s.aiDraft='';owner=s;api.save();phase='generating';refresh();timer=setTimeout(()=>fail('Ответ занял слишком много времени. Черновик ответа сохранён; модель можно запустить снова.'),3*60*1000);worker.postMessage({type:'generate',messages});});
+function history(state) {
+  return (state.aiMessages || []).filter(m => ['user', 'assistant'].includes(m.role) && typeof m.text === 'string' && m.text.trim() && (m.role === 'user' || m.status === 'complete')).slice(-11).map(m => ({ role: m.role, content: m.text.slice(0, 1800) }));
+}
+export function resetAI() { controller?.abort(); controller = null; pending = false; error = ''; }
+export function renderAIChat() {
+  const s = api.getState(), messages = s.aiMessages || [];
+  const status = pending ? 'Тренер отвечает…' : ready ? 'AI-тренер на связи' : 'Серверный AI ещё не подключён';
+  return `<div class="workspace ai-page"><div class="ws-heading"><div><span class="eyebrow">FORTNITE AI COACH</span><h1>Чат с AI-тренером</h1><p>Напиши своими словами, что хочешь разобрать. Можно задать и другой вопрос.</p></div><a class="btn secondary" href="#plan">Мой план →</a></div><div class="ai-layout"><section class="card ai-window"><div class="ai-status"><strong>${status}</strong><span>Серверная нейросеть</span><button class="btn secondary" data-ai-new ${pending ? 'disabled' : ''}>Новая беседа</button></div>${!ready ? '<div class="ai-load"><h2>Подключаем AI-тренера</h2><p>Для запуска нужен серверный адрес нейросети. Посетителям не потребуется скачивать модель или входить в ChatGPT.</p></div>' : ''}${error ? `<p class="error" role="alert">${esc(error)}</p>` : ''}<div class="ai-log" id="ai-log" role="log" aria-label="Переписка с AI-тренером">${messages.length ? messages.map(m => `<div class="message ${m.role === 'user' ? 'user' : 'coach'}"><small>${m.role === 'user' ? 'ТЫ' : 'AI-ТРЕНЕР'}</small><div>${esc(m.text)}</div></div>`).join('') : '<div class="ai-empty"><h2>Начни с конкретной ситуации</h2><p>Например: «Мы проиграли контест за локу. Как разобрать причину?» Если пока не знаешь, что проседает, так и напиши.</p></div>'}${pending ? '<div class="message coach"><small>AI-ТРЕНЕР</small><div>Думаю…</div></div>' : ''}</div><form id="ai-form" class="ws-compose"><label for="ai-message">Сообщение тренеру</label><textarea id="ai-message" name="message" maxlength="1800" required placeholder="Опиши ситуацию или задай вопрос…">${esc(s.aiDraft || '')}</textarea><div class="actions"><button class="btn" type="submit" ${!ready || pending ? 'disabled' : ''}>Отправить →</button>${pending ? '<button class="btn secondary" type="button" data-ai-stop>Остановить</button>' : ''}</div></form></section><aside class="stack"><section class="card"><h2>Контекст игрока</h2><p>${esc(s.profile?.mode)} · ${esc(s.profile?.team)} · ${esc(s.profile?.team === 'Solo' ? 'Все роли' : s.profile?.role)}</p><p>${esc(s.profile?.focus)}</p><p>Тренер видит твой профиль, описание текущего эпизода и последние сообщения. Он не просматривает видео и трекеры автоматически.</p></section><section class="card"><h3>Как это работает</h3><p>Текст отправляется на сервер AI для ответа. Модель не загружается на твой компьютер. Бесплатный дневной лимит сервиса может закончиться — тогда чат временно сообщит об этом.</p></section></aside></div></div>`;
+}
+export function mountAI() { const log = document.querySelector('#ai-log'); if (log) log.scrollTop = log.scrollHeight; }
+export function installAI(options) {
+  api = options;
+  document.addEventListener('input', event => { if (event.target.id === 'ai-message') { api.getState().aiDraft = event.target.value; api.save(); } });
+  document.addEventListener('click', event => {
+    const button = event.target.closest('button'); if (!button) return;
+    if (button.hasAttribute('data-ai-stop')) { controller?.abort(); return; }
+    if (button.hasAttribute('data-ai-new') && !pending) {
+      const s = api.getState(); if (s.aiMessages?.length) s.aiArchives = [s.aiMessages.slice(-80), ...(s.aiArchives || [])].slice(0, 5);
+      s.aiMessages = []; s.aiDraft = ''; api.save(); refresh();
+    }
+  });
+  document.addEventListener('submit', async event => {
+    if (event.target.id !== 'ai-form') return;
+    event.preventDefault();
+    if (!ready || pending) return;
+    const s = api.getState(), message = String(new FormData(event.target).get('message') || '').trim();
+    if (!message) return;
+    s.aiMessages ||= []; s.aiMessages.push({ role: 'user', text: message, status: 'complete' });
+    s.aiMessages = s.aiMessages.slice(-80); s.aiDraft = ''; api.save();
+    pending = true; error = ''; controller = new AbortController(); refresh();
+    try {
+      const response = await fetch(AI_ENDPOINT + '/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ context: context(s), messages: history(s) }), signal: controller.signal });
+      const data = await response.json();
+      if (!response.ok) throw Error(data.error === 'daily_limit' ? 'Бесплатный дневной лимит AI закончился. Чат заработает снова после его обновления.' : 'AI сейчас не отвечает. Попробуй позже.');
+      s.aiMessages.push({ role: 'assistant', text: data.answer, status: 'complete', model: data.model });
+      s.aiMessages = s.aiMessages.slice(-80); api.save();
+    } catch (cause) { if (cause.name !== 'AbortError') error = cause.message || 'Не удалось получить ответ.'; }
+    finally { pending = false; controller = null; refresh(); }
+  });
 }

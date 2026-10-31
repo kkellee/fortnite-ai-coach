@@ -1,0 +1,6 @@
+{
+  "name": "fortnite-ai-coach-api",
+  "main": "worker/index.mjs",
+  "compatibility_date": "2026-10-31",
+  "ai": { "binding": "AI" }
+}
