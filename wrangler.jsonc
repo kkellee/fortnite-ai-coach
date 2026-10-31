@@ -2,5 +2,7 @@
   "name": "fortnite-ai-coach-api",
   "main": "worker/index.mjs",
   "compatibility_date": "2026-10-31",
-  "ai": { "binding": "AI" }
+  "ai": { "binding": "AI" },
+  "durable_objects": { "bindings": [{ "name": "CHAT_QUOTA", "class_name": "ChatQuota" }] },
+  "migrations": [{ "tag": "v1-chat-quota", "new_sqlite_classes": ["ChatQuota"] }]
 }
