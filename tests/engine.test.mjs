@@ -1,8 +1,9 @@
 import test from 'node:test';import assert from 'node:assert/strict';
-import {freshState,validProfile,makePlan,summary,coachReply,parseState,dayKey} from '../dist/engine.mjs';
+import {freshState,validProfile,makePlan,dailyLoad,summary,coachReply,parseState,dayKey} from '../dist/engine.mjs';
 const profile={nick:'wheatǃ',mode:'Battle Royale',team:'Trio',build:'Build',role:'IGL',focus:'Ротации',minutes:40};
 test('validates required profile and mode',()=>{assert.ok(validProfile(profile));assert.equal(validProfile({...profile,mode:'unknown'}),false);assert.equal(validProfile({...profile,nick:''}),false);});
 test('plan never exceeds selected budget',()=>{for(const minutes of [20,40,60,90])for(const energy of [1,2,3,4,5]){const p=makePlan({...profile,minutes},{energy});assert.equal(p.length,3);assert.ok(p.every(t=>t.minutes>0));assert.equal(p.reduce((n,t)=>n+t.minutes,0),energy<=2?Math.min(20,minutes):minutes);}});
+test('short sleep also reduces the daily plan',()=>{assert.equal(dailyLoad({sleep:5,energy:5}),'light');assert.equal(makePlan(profile,{sleep:5,energy:5}).reduce((n,t)=>n+t.minutes,0),20);assert.equal(makePlan(profile,{sleep:8,energy:5}).reduce((n,t)=>n+t.minutes,0),40);});
 test('solo communication focus produces own decision exercise',()=>{const p=makePlan({...profile,team:'Solo',focus:'Коммуникация'});assert.match(p[0].title,/выход/);assert.match(p[1].steps[1],/своё решение/);});
 test('support plan treats support as second fragger',()=>assert.match(makePlan({...profile,role:'Саппорт'})[1].steps[1],/второго фраггера/));
 test('zero build review uses cover rather than requiring tarp',()=>assert.match(makePlan({...profile,build:'Zero Build',focus:'Late game'})[0].steps[1],/Zero Build/));

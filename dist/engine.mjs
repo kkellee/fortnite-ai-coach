@@ -31,7 +31,7 @@ const drills={
 };
 export function makePlan(p,checkin={}){
  if(!validProfile(p))return [];
- const low=Number(checkin.energy)<=2&&checkin.energy!==undefined;
+ const low=dailyLoad(checkin)==='light';
  const budget=low?Math.min(20,p.minutes):p.minutes;
  let focus=p.focus;
  if(p.team==='Solo'&&focus==='Коммуникация')focus='Ротации';
@@ -42,6 +42,9 @@ export function makePlan(p,checkin={}){
  {id:'practice',kind:low?'ЛЁГКАЯ СЕССИЯ':'ПРАКТИКА',minutes:practice,title:low?'Собери план без игровой нагрузки':'Проверь одно изменение',steps:low?['Ты отметил низкую энергию. Сегодня можно ограничиться записью и подготовкой следующей сессии.',role,'Если чувствуешь, что нужен отдых, заверши занятие. Пропуск не обнуляет прошлую работу.']:[`Выбери практику под ${p.mode} · ${p.team} · ${p.build}. Если это кастомки, проверь правила конкретного лобби.`,role,'Отслеживай только выбранное действие. Если нужная ситуация не возникла, запиши это — не делай вывод по отсутствующим данным.'],metric:'Количество подходящих ситуаций и твои решения в них.'},
  {id:'log',kind:'ИТОГ',minutes:5,title:'Закрой сессию осмысленно',steps:['Запиши, что проверял и что получилось. Отдели наблюдение от своей версии причины.','Выбери один вопрос для следующего разбора. Затем сделай перерыв.'],metric:'Одна запись в журнале с конкретным следующим шагом.'}
  ];
+}
+export function dailyLoad(checkin={}){
+ return (Number.isFinite(checkin.energy)&&checkin.energy<=2)||(Number.isFinite(checkin.sleep)&&checkin.sleep<6)?'light':'normal';
 }
 export function summary(s){
  const p=s.profile;if(!validProfile(p))return 'Сначала пройди стартовый опрос.';

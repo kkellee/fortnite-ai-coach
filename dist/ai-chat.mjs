@@ -1,4 +1,5 @@
 import { AI_ENDPOINT } from './ai-config.mjs';
+import { dayKey } from './engine.mjs';
 const esc = value => String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
 let api, pending = false, controller = null, error = '';
 const ready = /^https:\/\/[^/]+\.workers\.dev$/.test(AI_ENDPOINT);
@@ -6,7 +7,8 @@ function refresh() { if (location.hash === '#coach') api.render(); }
 function context(state) {
   const p = state.profile || {};
   const c = state.cases?.find(x => x.id === state.activeCase);
-  return JSON.stringify({ mode: p.mode, team: p.team, role: p.team === 'Solo' ? 'Solo' : p.role, focus: p.focus, minutes: p.minutes, episode: c?.note?.slice(0, 500) });
+  const check = state.checkins?.[dayKey()];
+  return JSON.stringify({ mode: p.mode, team: p.team, role: p.team === 'Solo' ? 'Solo' : p.role, focus: p.focus, minutes: p.minutes, today: check ? { sleepHours: check.sleep, energyOfFive: check.energy } : null, episode: c?.note?.slice(0, 500) });
 }
 function history(state) {
   return (state.aiMessages || []).filter(m => ['user', 'assistant'].includes(m.role) && typeof m.text === 'string' && m.text.trim() && (m.role === 'user' || m.status === 'complete')).slice(-11).map(m => ({ role: m.role, content: m.text.slice(0, 1800) }));
