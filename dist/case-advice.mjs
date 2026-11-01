@@ -1,14 +1,13 @@
-export function buildAdviceRequest(caseData, profile, checkin, outcomeReview = false) {
+import { playerContext } from './player-context.mjs?v=20261101-profile';
+export function buildAdviceRequest(caseData, profile, checkin, outcomeReview = false, stats = {}) {
   const c = caseData || {}, p = profile || {};
   const brief = value => typeof value === 'string' ? value.trim().slice(0, 350) : '';
   const context = JSON.stringify({
-    mode: p.mode, team: p.team, build: p.build,
-    role: p.team === 'Solo' ? 'Solo' : p.role,
-    focus: c.focus || p.focus,
+    player: JSON.parse(playerContext({ profile: p, stats })), episodeFocus: c.focus || p.focus,
     minutesToday: checkin?.minutes ?? p.minutes,
     sleepHoursToday: checkin?.sleep ?? null,
     energyOfFiveToday: checkin?.energy ?? null
-  });
+  }).slice(0,1000);
   const message = [
     outcomeReview
       ? 'Оцени результат проверки игрока по его тексту. Ты не видишь файл или статистику. Ответь по-русски, предметно: (1) выполнено ли выбранное действие по предоставленным данным; (2) что результат доказывает и чего ещё не доказывает; (3) одно следующее упражнение или изменение с условием и метрикой под режим и роль. Если игрок написал только «нет» или фактов мало, скажи, что нельзя оценить игру, и попроси одну конкретную деталь. Не больше 180 слов.'

@@ -5,7 +5,7 @@ export const TEAMS = ['Solo','Duo','Trio'];
 export const ROLES = ['IGL','Фраггер','Саппорт'];
 export const FOCI = [GENERAL_FOCUS,'Контест за локу','Файты','Ротации','Late game','Коммуникация'];
 export const dayKey = (d=new Date()) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-export const freshState=()=>({version:1,profile:null,checkins:{},completed:{},sessions:[],messages:[],stats:{pr:null,earnings:null,events:null},review:null});
+export const freshState=()=>({version:1,profile:null,checkins:{},completed:{},sessions:[],messages:[],stats:{pr:null,earnings:null,events:null,matches:null,eliminations:null,topTen:null,early:null,period:'',notes:'',updated:''},profileReview:null,review:null});
 export function validProfile(p){return !!p && typeof p.nick==='string' && p.nick.trim().length>0 && p.nick.length<=32 && MODES.includes(p.mode) && TEAMS.includes(p.team) && ['Build','Zero Build'].includes(p.build) && (p.team==='Solo'||ROLES.includes(p.role)) && FOCI.includes(p.focus) && [20,40,60,90].includes(Number(p.minutes));}
 export function parseState(raw){
  const s=typeof raw==='string'?JSON.parse(raw):raw;
@@ -15,7 +15,11 @@ export function parseState(raw){
  for(const [date,v] of Object.entries(s.completed||{})){if(/^\d{4}-\d{2}-\d{2}$/.test(date)&&Array.isArray(v))out.completed[date]=[...new Set(v.filter(x=>['review','practice','log'].includes(x)))];}
  if(Array.isArray(s.sessions))out.sessions=s.sessions.filter(v=>v&&typeof v.date==='string'&&typeof v.note==='string'&&v.note.length<=3000&&Number.isFinite(v.matches)&&v.matches>=0&&v.matches<=100&&Number.isFinite(v.early)&&v.early>=0&&v.early<=v.matches).slice(0,365).map(v=>({...v,pinned:v.pinned===true}));
  if(Array.isArray(s.messages))out.messages=s.messages.filter(m=>m&&['coach','user'].includes(m.role)&&typeof m.text==='string'&&m.text.length<=5000).slice(-100);
- for(const k of ['pr','earnings','events']){const n=s.stats?.[k];out.stats[k]=Number.isFinite(n)&&n>=0?n:null;}
+ for(const k of ['pr','earnings','events','matches','eliminations','topTen','early']){const n=s.stats?.[k];out.stats[k]=Number.isFinite(n)&&n>=0&&n<=1000000000?n:null;}
+ if(out.stats.matches!==null){for(const k of ['topTen','early'])if(out.stats[k]>out.stats.matches)out.stats[k]=null;}
+ for(const [k,max] of [['period',60],['notes',500]])out.stats[k]=typeof s.stats?.[k]==='string'?s.stats[k].slice(0,max):'';
+ out.stats.updated=typeof s.stats?.updated==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(s.stats.updated)?s.stats.updated:'';
+ if(s.profileReview&&typeof s.profileReview.text==='string')out.profileReview={text:s.profileReview.text.slice(0,5000),fingerprint:String(s.profileReview.fingerprint||'').slice(0,3000),date:String(s.profileReview.date||'').slice(0,10)};
  if(s.review&&typeof s.review.note==='string')out.review={note:s.review.note.slice(0,3000),stage:String(s.review.stage||'').slice(0,50)};
  out.cases=cleanCases(s.cases);out.activeCase=out.cases.some(c=>c.id===s.activeCase)?s.activeCase:out.cases[0]?.id;
  out.aiArchives=(Array.isArray(s.aiArchives)?s.aiArchives:[]).slice(0,5).map(a=>cleanAI(a));out.aiMessages=cleanAI(s.aiMessages);out.aiDraft=typeof s.aiDraft==='string'?s.aiDraft.slice(0,1800):'';
