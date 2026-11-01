@@ -1,5 +1,5 @@
 import { AI_ENDPOINT } from './ai-config.mjs';
-import { dayKey } from './engine.mjs?v=20261101-journal';
+import { dayKey } from './engine.mjs?v=20261101-redesign';
 const esc = value => String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
 let api, pending = false, controller = null, error = '';
 const ready = /^https:\/\/[^/]+\.workers\.dev$/.test(AI_ENDPOINT);

@@ -1,6 +1,6 @@
 import {newCase,questions,moveCase,safeLink} from './workflow.mjs';
 import {putFile,getFile,deleteFile,clearFiles,validateFile} from './evidence.mjs';
-import {dayKey,makePlan,dailyLoad} from './engine.mjs?v=20261101-journal';
+import {dayKey,makePlan,dailyLoad} from './engine.mjs?v=20261101-redesign';
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const names=['Материал','Обсуждение','Практика','Итог'];
 const phases=['material','discussion','practice','complete'];
