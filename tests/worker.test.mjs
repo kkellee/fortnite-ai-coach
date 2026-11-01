@@ -111,3 +111,27 @@ test('Groq handles analyses while Cloudflare handles chat when a server key is c
     assert.equal(cloudflareCalls, 1);
   } finally { globalThis.fetch = originalFetch; }
 });
+
+test('Gemini takes analyses when configured and does not consume Cloudflare inference', async () => {
+  const originalFetch = globalThis.fetch;
+  let sent;
+  globalThis.fetch = async (url, options) => {
+    sent = { url, key: options.headers['x-goog-api-key'], body: JSON.parse(options.body) };
+    return Response.json({ candidates: [{ content: { parts: [{ text: 'Проверь свою ротацию.' }] } }], usageMetadata: { promptTokenCount: 50, candidatesTokenCount: 10 } });
+  };
+  try {
+    let cloudflareCalls = 0;
+    const env = { GEMINI_API_KEY: 'gemini-test-key', GROQ_API_KEY: 'groq-test-key', CHAT_QUOTA: quotaBinding(), AI: { run: async () => { cloudflareCalls++; return { response: 'Чат работает.' }; } } };
+    const analysisRequest = new Request('https://example.workers.dev/analysis', { method: 'POST', headers: { Origin: origin, 'Content-Type': 'application/json', 'CF-Connecting-IP': '192.0.2.1' }, body: JSON.stringify({ ...sample, context: 'Solo' }) });
+    const analysis = await worker.fetch(analysisRequest, env);
+    assert.equal(analysis.status, 200);
+    assert.equal((await analysis.json()).model, 'gemini-2.5-flash');
+    assert.equal(sent.key, 'gemini-test-key');
+    assert.match(sent.url, /generativelanguage\.googleapis\.com/);
+    assert.match(sent.body.systemInstruction.parts[0].text, /Solo/);
+    assert.equal(sent.body.contents[0].role, 'user');
+    assert.equal(cloudflareCalls, 0);
+    assert.equal((await worker.fetch(request(sample), env)).status, 200);
+    assert.equal(cloudflareCalls, 1);
+  } finally { globalThis.fetch = originalFetch; }
+});
