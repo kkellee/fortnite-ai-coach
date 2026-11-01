@@ -1,8 +1,8 @@
-import {renderAIChat,installAI,mountAI,resetAI} from './ai-chat.mjs?v=20261101-groq';
-import {renderWorkspace,installWorkspace,mountWorkspace,releaseWorkspace,resetEvidence} from './workspace.mjs?v=20261101-budget';
+import {renderAIChat,installAI,mountAI,resetAI} from './ai-chat.mjs?v=20261101-continuity';
+import {renderWorkspace,installWorkspace,mountWorkspace,releaseWorkspace,resetEvidence} from './workspace.mjs?v=20261101-continuity';
 import {renderLanding} from './landing.mjs';
 import {freshState,parseState,dayKey,validProfile,makePlan,dailyLoad,summary,MODES,TEAMS,ROLES,FOCI} from './engine.mjs?v=20261101-vision';
-import {renderProfilePanel,installProfilePanel,mountProfilePanel} from './profile-panel.mjs?v=20261101-budget';
+import {renderProfilePanel,installProfilePanel,mountProfilePanel} from './profile-panel.mjs?v=20261101-continuity';
 const $=s=>document.querySelector(s),esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const paths={arrow:'M4 10h12m-5-5 5 5-5 5',home:'m3 9 7-6 7 6v9H3zm5 9v-6h4v6',plan:'M5 3h10v15H5zm3 4h4m-4 4h4m-4 4h3',chat:'M3 3h14v11H8l-5 4z',play:'M7 4v12l10-6z',chart:'M3 3v14h15M7 13V9m4 4V5m4 8V7',settings:'M10 3v2m0 10v2M3 10h2m10 0h2M5 5l1 1m8 8 1 1M5 15l1-1m8-8 1-1M13 10a3 3 0 1 1-6 0 3 3 0 1 1 6 0',check:'m4 10 4 4 8-9',close:'m5 5 10 10M15 5 5 15',upload:'M10 14V3m-4 4 4-4 4 4M3 13v4h14v-4',book:'M10 5C7 2 3 3 3 3v14s4-1 7 1c3-2 7-1 7-1V3s-4-1-7 2zm0 0v13',sun:'M10 2v2m0 12v2M2 10h2m12 0h2M4 4l2 2m8 8 2 2M4 16l2-2m8-8 2-2M13 10a3 3 0 1 1-6 0 3 3 0 1 1 6 0'};
 const icon=n=>`<svg class="icon" viewBox="0 0 20 20" aria-hidden="true"><path d="${paths[n]||paths.arrow}"/></svg>`;

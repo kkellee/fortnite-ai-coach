@@ -25,7 +25,7 @@ test('episode and result advice use player evidence without claiming to see a fi
   assert.match(first.messages[0].content, /I took the first fight/);
   assert.match(result.messages[0].content, /I wrote only no/);
   assert.match(result.messages[0].content, /нельзя оценить игру/);
-  assert.equal(first.context.includes('"energyOfFiveToday":2'), true);
+  assert.equal(first.context.includes('"energyOfFive":2'), true);
   assert.ok(first.messages[0].content.length <= 1800);
   episode.aiAdvice = 'First feedback';
   episode.aiOutcomeAdvice = 'Result feedback';

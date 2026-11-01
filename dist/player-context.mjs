@@ -1,3 +1,4 @@
+import { coachContext } from './coach-continuity.mjs?v=20261101-continuity';
 // Only player-entered numbers are sent to the model. A tracker URL is a reference, not scraped evidence.
 export function playerContext(state) {
   const p = state?.profile || {}, s = state?.stats || {};
@@ -39,7 +40,7 @@ export function profileFindings(stats = {}) {
 }
 
 export function profileReviewRequest(state) {
-  const context = JSON.stringify({ player: JSON.parse(playerContext(state)), recentChatUnverified: (state?.aiMessages || []).filter(m => ['user', 'assistant'].includes(m?.role) && typeof m.text === 'string').slice(-2).map(m => ({ role: m.role, text: m.text.slice(0, 160) })) }).slice(0,1600);
+  const context = coachContext(state, null, null);
   const s = state?.stats || {}, matches = Number(s.matches);
   const ratio = (key, suffix) => Number.isFinite(matches) && matches > 0 && Number.isFinite(s[key]) && s[key] >= 0 && (suffix || s[key] <= matches) ? `${s[key]} из ${matches} = ${suffix ? (s[key]/matches).toFixed(2)+' за матч' : Math.round(s[key]/matches*100)+'%'}` : 'нет данных';
   const message = `Составь персональное УПРАЖНЕНИЕ для анализа моих турниров на основе моего профиля. Проверенные арифметические соотношения: ранние вылеты ${ratio('early')}; топ-10 ${ratio('topTen')}; устранения ${ratio('eliminations',true)}. Они уже показаны отдельными карточками. В ответе НЕ повторяй числа, проценты и средние значения. НЕ оценивай мой уровень, стабильность, агрессию и качество игры по агрегатным показателям: по ним нельзя установить причину. НЕ называй показатели высокими, низкими или поляризованными. Ответь строго тремя короткими пунктами: 1) какую ОДНУ гипотезу проверить первой и почему именно её имеет смысл проверить, не называя её доказанным слабым местом; 2) какое наблюдение записать в следующих трёх подходящих эпизодах с учётом моей роли и формата; 3) какое следующее решение принять по собранным наблюдениям. Если данных мало, укажи, чего не хватает. Не утверждай, что открывал трекер. По-русски, до 120 слов.`;

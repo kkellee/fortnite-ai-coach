@@ -23,6 +23,7 @@ test('server AI receives chat and returns the model answer', async () => {
   assert.equal(response.headers.get('Access-Control-Allow-Origin'), origin);
   assert.equal((await response.json()).remaining, 19);
   assert.equal(sent.input.messages[0].role, 'system');
+  assert.match(sent.input.messages[0].content, /ЕДИНАЯ ЛИНИЯ ТРЕНЕРА/);
   assert.equal(sent.input.messages[1].role, 'user');
 });
 
