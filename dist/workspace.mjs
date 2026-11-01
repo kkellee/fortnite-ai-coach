@@ -15,7 +15,7 @@ async function requestAdvice(c,outcomeReview=false){
  advicePending=true;adviceError='';api.render();
  try{
   const s=api.getState(),payload=buildAdviceRequest(c,s.profile,s.checkins[dayKey()],outcomeReview,s.stats);
-  const response=await fetch(AI_ENDPOINT+'/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+  const response=await fetch(AI_ENDPOINT+'/analysis',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
   const data=await response.json();
   if(!response.ok)throw Error(data.error==='player_daily_limit'?'Сегодня ответы тренера закончились. Продолжи завтра.':data.error==='daily_limit'?'Общий дневной запас AI закончился. Попробуй завтра.':'Тренер сейчас не ответил. Попробуй позже.');
   if(typeof data.answer!=='string'||!data.answer.trim())throw Error('Тренер вернул пустой ответ. Попробуй позже.');

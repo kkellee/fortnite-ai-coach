@@ -48,7 +48,7 @@ export function installProfilePanel(options) {
     if (!event.target.closest('[data-profile-review]') || pending) return;
     const s = api.getState(); pending = true; error = ''; api.render();
     try {
-      const response = await fetch(AI_ENDPOINT+'/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(profileReviewRequest(s))});
+      const response = await fetch(AI_ENDPOINT+'/analysis',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(profileReviewRequest(s))});
       const data = await response.json();
       if (!response.ok || !data.answer) throw Error(data.error==='player_daily_limit'?'Лимит сообщений на сегодня исчерпан. Попробуй завтра.':'Тренер сейчас недоступен. Попробуй позже.');
       if (/\d+(?:[.,]\d+)?\s*%/.test(data.answer)) throw Error('AI повторил числа, которые могут быть неточными. Используй проверенные показатели выше и попроси разбор ещё раз.');
