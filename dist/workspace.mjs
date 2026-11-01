@@ -2,7 +2,7 @@ import {newCase,questions,moveCase,safeLink} from './workflow.mjs?v=20261101-fee
 import {putFile,getFile,deleteFile,clearFiles,validateFile} from './evidence.mjs';
 import {dayKey,makePlan,dailyLoad} from './engine.mjs?v=20261101-vision';
 import {AI_ENDPOINT} from './ai-config.mjs';
-import {buildAdviceRequest} from './case-advice.mjs?v=20261101-vision';
+import {buildAdviceRequest} from './case-advice.mjs?v=20261101-groq';
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const names=['Материал','Обсуждение','Практика','Итог'];
 const phases=['material','discussion','practice','complete'];
@@ -14,7 +14,7 @@ async function requestAdvice(c,outcomeReview=false){
  if(advicePending||!c||!c.note.trim()||(outcomeReview?!c.outcome.trim():c.answers.length!==3))return;
  advicePending=true;adviceError='';api.render();
  try{
-  const s=api.getState(),payload=buildAdviceRequest(c,s.profile,s.checkins[dayKey()],outcomeReview,s.stats);
+  const s=api.getState(),payload=buildAdviceRequest(c,s.profile,s.checkins[dayKey()],outcomeReview,s.stats,s.aiMessages);
   const response=await fetch(AI_ENDPOINT+'/analysis',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
   const data=await response.json();
   if(!response.ok)throw Error(data.error==='player_daily_limit'?'Сегодня ответы тренера закончились. Продолжи завтра.':data.error==='daily_limit'?'Общий дневной запас AI закончился. Попробуй завтра.':'Тренер сейчас не ответил. Попробуй позже.');

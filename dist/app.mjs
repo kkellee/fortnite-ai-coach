@@ -1,4 +1,4 @@
-import {renderAIChat,installAI,mountAI,resetAI} from './ai-chat.mjs?v=20261101-vision';
+import {renderAIChat,installAI,mountAI,resetAI} from './ai-chat.mjs?v=20261101-groq';
 import {renderWorkspace,installWorkspace,mountWorkspace,releaseWorkspace,resetEvidence} from './workspace.mjs?v=20261101-budget';
 import {renderLanding} from './landing.mjs';
 import {freshState,parseState,dayKey,validProfile,makePlan,dailyLoad,summary,MODES,TEAMS,ROLES,FOCI} from './engine.mjs?v=20261101-vision';

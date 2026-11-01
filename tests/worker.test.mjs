@@ -87,3 +87,27 @@ test('site-wide budget rejects new reservations near the free allocation', async
   await send({ action: 'finish_global', id: 'first', neurons: 8950 });
   assert.equal((await send({ action: 'reserve_global', id: 'second' })).allowed, false);
 });
+
+test('Groq handles analyses while Cloudflare handles chat when a server key is configured', async () => {
+  const originalFetch = globalThis.fetch;
+  const calls = [];
+  globalThis.fetch = async (url, options) => {
+    calls.push({ url, body: JSON.parse(options.body), authorization: options.headers.Authorization });
+    return Response.json({ choices: [{ message: { content: 'Проверь одну ротацию.' } }], usage: { prompt_tokens: 500, completion_tokens: 40 } });
+  };
+  try {
+    let cloudflareCalls = 0;
+    const env = { GROQ_API_KEY: 'test-key', CHAT_QUOTA: quotaBinding(), AI: { run: async () => { cloudflareCalls++; return { response: 'Чат работает.', usage: { neurons: 2 } }; } } };
+    const analysisRequest = new Request('https://example.workers.dev/analysis', { method: 'POST', headers: { Origin: origin, 'Content-Type': 'application/json', 'CF-Connecting-IP': '192.0.2.1' }, body: JSON.stringify({ ...sample, context: '{"player":"Solo"}' }) });
+    const analysis = await worker.fetch(analysisRequest, env);
+    assert.equal(analysis.status, 200);
+    assert.equal((await analysis.json()).model, 'qwen/qwen3.8-27b');
+    assert.equal(calls.length, 1);
+    assert.match(calls[0].url, /api\.groq\.com/);
+    assert.match(calls[0].body.messages[0].content, /Solo/);
+    assert.equal(calls[0].authorization, 'Bearer test-key');
+    assert.equal(cloudflareCalls, 0);
+    assert.equal((await worker.fetch(request(sample), env)).status, 200);
+    assert.equal(cloudflareCalls, 1);
+  } finally { globalThis.fetch = originalFetch; }
+});
