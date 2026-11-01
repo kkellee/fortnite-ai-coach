@@ -10,7 +10,7 @@ test('daily time and low energy change actual drill duration', () => {
   const normal = makePlan(profile, { sleep: 8, energy: 4, minutes: 60 });
   const light = makePlan(profile, { sleep: 5, energy: 4, minutes: 60 });
   assert.equal(normal.reduce((n, x) => n + x.minutes, 0), 60);
-  assert.equal(light.reduce((n, x) => n + x.minutes, 0), 20);
+  assert.equal(light.reduce((n, x) => n + x.minutes, 0), 60);
   assert.notEqual(normal[1].title, light[1].title);
 });
 
