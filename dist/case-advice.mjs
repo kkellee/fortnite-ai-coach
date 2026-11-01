@@ -1,4 +1,4 @@
-import { coachContext } from './coach-continuity.mjs?v=20261101-continuity';
+import { coachContext } from './coach-continuity.mjs?v=20261101-tournaments';
 export function buildAdviceRequest(caseData, profile, checkin, outcomeReview = false, stats = {}, recentChat = [], state = {}) {
   const c = caseData || {}, p = profile || {};
   const brief = value => typeof value === 'string' ? value.trim().slice(0, 350) : '';

@@ -1,5 +1,5 @@
 import { AI_ENDPOINT } from './ai-config.mjs';
-import { profileFindings, profileReviewRequest, playerContext } from './player-context.mjs?v=20261101-continuity';
+import { profileFindings, profileReviewRequest, playerContext } from './player-context.mjs?v=20261101-tournaments';
 import { dayKey } from './engine.mjs?v=20261101-vision';
 import { putFile, getFile, deleteFile } from './evidence.mjs';
 const esc = value => String(value ?? '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[char]);

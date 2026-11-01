@@ -1,11 +1,12 @@
 import {GENERAL_FOCUS,cleanAI} from './ai-context.mjs';
 import {cleanCases} from './workflow.mjs?v=20261101-feedback';
+import {cleanTournaments} from './tournaments.mjs?v=20261101-tournaments';
 export const MODES = ['Battle Royale','Reload'];
 export const TEAMS = ['Solo','Duo','Trio'];
 export const ROLES = ['IGL','Фраггер','Саппорт'];
 export const FOCI = [GENERAL_FOCUS,'Контест за локу','Файты','Ротации','Late game','Коммуникация'];
 export const dayKey = (d=new Date()) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-export const freshState=()=>({version:1,profile:null,checkins:{},completed:{},sessions:[],messages:[],stats:{pr:null,earnings:null,events:null,matches:null,eliminations:null,topTen:null,early:null,period:'',notes:'',updated:'',screenshotText:''},profileScreenshot:null,profileReview:null,review:null});
+export const freshState=()=>({version:1,profile:null,checkins:{},completed:{},sessions:[],tournaments:[],tournamentReview:null,messages:[],stats:{pr:null,earnings:null,events:null,matches:null,eliminations:null,topTen:null,early:null,period:'',notes:'',updated:'',screenshotText:''},profileScreenshot:null,profileReview:null,review:null});
 export function validProfile(p){return !!p && typeof p.nick==='string' && p.nick.trim().length>0 && p.nick.length<=32 && MODES.includes(p.mode) && TEAMS.includes(p.team) && ['Build','Zero Build'].includes(p.build) && (p.team==='Solo'||ROLES.includes(p.role)) && FOCI.includes(p.focus) && [20,40,60,90].includes(Number(p.minutes));}
 export function parseState(raw){
  const s=typeof raw==='string'?JSON.parse(raw):raw;
@@ -14,6 +15,8 @@ export function parseState(raw){
  for(const [date,v] of Object.entries(s.checkins||{})){if(/^\d{4}-\d{2}-\d{2}$/.test(date)&&v&&Number.isFinite(v.sleep)&&v.sleep>=0&&v.sleep<=24&&Number.isInteger(v.energy)&&v.energy>=1&&v.energy<=5)out.checkins[date]={sleep:v.sleep,energy:v.energy,...([20,40,60,90].includes(v.minutes)?{minutes:v.minutes}:{})};}
  for(const [date,v] of Object.entries(s.completed||{})){if(/^\d{4}-\d{2}-\d{2}$/.test(date)&&Array.isArray(v))out.completed[date]=[...new Set(v.filter(x=>['review','practice','log'].includes(x)))];}
  if(Array.isArray(s.sessions))out.sessions=s.sessions.filter(v=>v&&typeof v.date==='string'&&typeof v.note==='string'&&v.note.length<=3000&&Number.isFinite(v.matches)&&v.matches>=0&&v.matches<=100&&Number.isFinite(v.early)&&v.early>=0&&v.early<=v.matches).slice(0,365).map(v=>({...v,pinned:v.pinned===true}));
+ out.tournaments=cleanTournaments(s.tournaments);
+ if(s.tournamentReview&&typeof s.tournamentReview.text==='string')out.tournamentReview={text:s.tournamentReview.text.slice(0,8000),fingerprint:String(s.tournamentReview.fingerprint||'').slice(0,200),date:String(s.tournamentReview.date||'').slice(0,10)};
  if(Array.isArray(s.messages))out.messages=s.messages.filter(m=>m&&['coach','user'].includes(m.role)&&typeof m.text==='string'&&m.text.length<=5000).slice(-100);
  for(const k of ['pr','earnings','events','matches','eliminations','topTen','early']){const n=s.stats?.[k];out.stats[k]=Number.isFinite(n)&&n>=0&&n<=1000000000?n:null;}
  if(out.stats.matches!==null){for(const k of ['topTen','early'])if(out.stats[k]>out.stats.matches)out.stats[k]=null;}

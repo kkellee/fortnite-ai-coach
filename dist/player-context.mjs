@@ -1,4 +1,4 @@
-import { coachContext } from './coach-continuity.mjs?v=20261101-continuity';
+import { coachContext } from './coach-continuity.mjs?v=20261101-tournaments';
 // Only player-entered numbers are sent to the model. A tracker URL is a reference, not scraped evidence.
 export function playerContext(state) {
   const p = state?.profile || {}, s = state?.stats || {};
