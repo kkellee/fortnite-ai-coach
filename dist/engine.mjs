@@ -1,5 +1,5 @@
 import {GENERAL_FOCUS,cleanAI} from './ai-context.mjs';
-import {cleanCases} from './workflow.mjs';
+import {cleanCases} from './workflow.mjs?v=20261101-feedback';
 export const MODES = ['Battle Royale','Reload'];
 export const TEAMS = ['Solo','Duo','Trio'];
 export const ROLES = ['IGL','Фраггер','Саппорт'];
@@ -11,7 +11,7 @@ export function parseState(raw){
  const s=typeof raw==='string'?JSON.parse(raw):raw;
  if(!s||s.version!==1||!validProfile(s.profile))throw Error('Файл не содержит совместимый профиль FORTNITE AI COACH.');
  const out=freshState();out.profile={...s.profile,nick:s.profile.nick.trim(),minutes:Number(s.profile.minutes)};
- for(const [date,v] of Object.entries(s.checkins||{})){if(/^\d{4}-\d{2}-\d{2}$/.test(date)&&v&&Number.isFinite(v.sleep)&&v.sleep>=0&&v.sleep<=24&&Number.isInteger(v.energy)&&v.energy>=1&&v.energy<=5)out.checkins[date]={sleep:v.sleep,energy:v.energy};}
+ for(const [date,v] of Object.entries(s.checkins||{})){if(/^\d{4}-\d{2}-\d{2}$/.test(date)&&v&&Number.isFinite(v.sleep)&&v.sleep>=0&&v.sleep<=24&&Number.isInteger(v.energy)&&v.energy>=1&&v.energy<=5)out.checkins[date]={sleep:v.sleep,energy:v.energy,...([20,40,60,90].includes(v.minutes)?{minutes:v.minutes}:{})};}
  for(const [date,v] of Object.entries(s.completed||{})){if(/^\d{4}-\d{2}-\d{2}$/.test(date)&&Array.isArray(v))out.completed[date]=[...new Set(v.filter(x=>['review','practice','log'].includes(x)))];}
  if(Array.isArray(s.sessions))out.sessions=s.sessions.filter(v=>v&&typeof v.date==='string'&&typeof v.note==='string'&&v.note.length<=3000&&Number.isFinite(v.matches)&&v.matches>=0&&v.matches<=100&&Number.isFinite(v.early)&&v.early>=0&&v.early<=v.matches).slice(0,365).map(v=>({...v,pinned:v.pinned===true}));
  if(Array.isArray(s.messages))out.messages=s.messages.filter(m=>m&&['coach','user'].includes(m.role)&&typeof m.text==='string'&&m.text.length<=5000).slice(-100);
@@ -32,14 +32,15 @@ const drills={
 export function makePlan(p,checkin={}){
  if(!validProfile(p))return [];
  const low=dailyLoad(checkin)==='light';
- const budget=low?Math.min(20,p.minutes):p.minutes;
+ const available=[20,40,60,90].includes(checkin.minutes)?checkin.minutes:p.minutes;
+ const budget=low?Math.min(20,available):available;
  let focus=p.focus;
  if(p.team==='Solo'&&focus==='Коммуникация')focus='Ротации';
  const d=drills[focus];const first=Math.floor(budget*.4),practice=budget-first-5;
  const role=p.team==='Solo'?'Сформулируй своё решение до действия и запиши причину.':p.role==='IGL'?'Перед действием назови план, маршрут и условие смены решения.':p.role==='Фраггер'?'Перед входом согласуй цель с IGL. После файта отметь, какой урон помог команде реализовать решение.':'В роли второго фраггера отметь своё расстояние до команды и доступные возможности для рефреша. Обязанности уточните с IGL.';
  return [
  {id:'review',kind:'РАЗБОР',minutes:first,title:d.title,steps:d.steps,metric:d.metric},
- {id:'practice',kind:low?'ЛЁГКАЯ СЕССИЯ':'ПРАКТИКА',minutes:practice,title:low?'Собери план без игровой нагрузки':'Проверь одно изменение',steps:low?['Ты отметил низкую энергию. Сегодня можно ограничиться записью и подготовкой следующей сессии.',role,'Если чувствуешь, что нужен отдых, заверши занятие. Пропуск не обнуляет прошлую работу.']:[`Выбери практику под ${p.mode} · ${p.team} · ${p.build}. Если это кастомки, проверь правила конкретного лобби.`,role,'Отслеживай только выбранное действие. Если нужная ситуация не возникла, запиши это — не делай вывод по отсутствующим данным.'],metric:'Количество подходящих ситуаций и твои решения в них.'},
+ {id:'practice',kind:low?'ЛЁГКАЯ СЕССИЯ':'ПРАКТИКА',minutes:practice,title:low?'Собери план без игровой нагрузки':'Проверь одно изменение',steps:low?['Из-за недостатка сна или низкой энергии сегодня можно ограничиться записью и подготовкой следующей сессии.',role,'Если чувствуешь, что нужен отдых, заверши занятие. Пропуск не обнуляет прошлую работу.']:[`Выбери практику под ${p.mode} · ${p.team} · ${p.build}. Если это кастомки, проверь правила конкретного лобби.`,role,'Отслеживай только выбранное действие. Если нужная ситуация не возникла, запиши это — не делай вывод по отсутствующим данным.'],metric:'Количество подходящих ситуаций и твои решения в них.'},
  {id:'log',kind:'ИТОГ',minutes:5,title:'Закрой сессию осмысленно',steps:['Запиши, что проверял и что получилось. Отдели наблюдение от своей версии причины.','Выбери один вопрос для следующего разбора. Затем сделай перерыв.'],metric:'Одна запись в журнале с конкретным следующим шагом.'}
  ];
 }
