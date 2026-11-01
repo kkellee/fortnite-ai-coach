@@ -1,7 +1,7 @@
 import {GENERAL_FOCUS,cleanAI} from './ai-context.mjs';
 import {cleanCases} from './workflow.mjs?v=20261101-feedback';
 import {cleanTournaments} from './tournaments.mjs?v=20261101-tournaments';
-import {exerciseFor} from './practice-catalog.mjs';
+import {exerciseFor} from './practice-catalog.mjs?v=20261101-stepnav';
 export const MODES = ['Battle Royale','Reload'];
 export const TEAMS = ['Solo','Duo','Trio'];
 export const ROLES = ['IGL','Фраггер','Саппорт'];
