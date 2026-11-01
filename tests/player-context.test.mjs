@@ -22,4 +22,7 @@ test('profile ratios only use complete comparable inputs and survive backup', ()
   const restored = parseState({...freshState(),profile,stats:{matches:20,early:6,period:'FNCS',notes:'Trio',updated:'2026-11-01'},profileReview:{text:'Проверь раннюю игру',fingerprint:'old',date:'2026-11-01'}});
   assert.equal(restored.stats.early,6);
   assert.equal(restored.profileReview.text,'Проверь раннюю игру');
+  const withScreenshot=parseState({...freshState(),profile,stats:{screenshotText:'Power Ranking: 21323'},profileScreenshot:{id:'image-1',name:'tracker.png',date:'2026-11-01'}});
+  assert.match(playerContext(withScreenshot),/Power Ranking: 21323/);
+  assert.equal(withScreenshot.profileScreenshot.name,'tracker.png');
 });

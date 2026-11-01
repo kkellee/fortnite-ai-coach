@@ -1,4 +1,4 @@
-import { playerContext } from './player-context.mjs?v=20261101-profile';
+import { playerContext } from './player-context.mjs?v=20261101-vision';
 export function buildAdviceRequest(caseData, profile, checkin, outcomeReview = false, stats = {}) {
   const c = caseData || {}, p = profile || {};
   const brief = value => typeof value === 'string' ? value.trim().slice(0, 350) : '';

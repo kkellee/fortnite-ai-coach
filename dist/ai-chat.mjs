@@ -1,6 +1,6 @@
 import { AI_ENDPOINT } from './ai-config.mjs';
-import { dayKey } from './engine.mjs?v=20261101-profile';
-import { playerContext, profileFindings } from './player-context.mjs?v=20261101-profile';
+import { dayKey } from './engine.mjs?v=20261101-vision';
+import { playerContext, profileFindings } from './player-context.mjs?v=20261101-vision';
 const esc = value => String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
 let api, pending = false, controller = null, error = '';
 const ready = /^https:\/\/[^/]+\.workers\.dev$/.test(AI_ENDPOINT);

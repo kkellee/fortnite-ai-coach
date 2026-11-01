@@ -5,7 +5,7 @@ export const TEAMS = ['Solo','Duo','Trio'];
 export const ROLES = ['IGL','Фраггер','Саппорт'];
 export const FOCI = [GENERAL_FOCUS,'Контест за локу','Файты','Ротации','Late game','Коммуникация'];
 export const dayKey = (d=new Date()) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-export const freshState=()=>({version:1,profile:null,checkins:{},completed:{},sessions:[],messages:[],stats:{pr:null,earnings:null,events:null,matches:null,eliminations:null,topTen:null,early:null,period:'',notes:'',updated:''},profileReview:null,review:null});
+export const freshState=()=>({version:1,profile:null,checkins:{},completed:{},sessions:[],messages:[],stats:{pr:null,earnings:null,events:null,matches:null,eliminations:null,topTen:null,early:null,period:'',notes:'',updated:'',screenshotText:''},profileScreenshot:null,profileReview:null,review:null});
 export function validProfile(p){return !!p && typeof p.nick==='string' && p.nick.trim().length>0 && p.nick.length<=32 && MODES.includes(p.mode) && TEAMS.includes(p.team) && ['Build','Zero Build'].includes(p.build) && (p.team==='Solo'||ROLES.includes(p.role)) && FOCI.includes(p.focus) && [20,40,60,90].includes(Number(p.minutes));}
 export function parseState(raw){
  const s=typeof raw==='string'?JSON.parse(raw):raw;
@@ -19,6 +19,8 @@ export function parseState(raw){
  if(out.stats.matches!==null){for(const k of ['topTen','early'])if(out.stats[k]>out.stats.matches)out.stats[k]=null;}
  for(const [k,max] of [['period',60],['notes',500]])out.stats[k]=typeof s.stats?.[k]==='string'?s.stats[k].slice(0,max):'';
  out.stats.updated=typeof s.stats?.updated==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(s.stats.updated)?s.stats.updated:'';
+ out.stats.screenshotText=typeof s.stats?.screenshotText==='string'?s.stats.screenshotText.slice(0,1200):'';
+ if(s.profileScreenshot&&typeof s.profileScreenshot.id==='string'&&typeof s.profileScreenshot.name==='string')out.profileScreenshot={id:s.profileScreenshot.id.slice(0,80),name:s.profileScreenshot.name.slice(0,120),date:String(s.profileScreenshot.date||'').slice(0,10)};
  if(s.profileReview&&typeof s.profileReview.text==='string')out.profileReview={text:s.profileReview.text.slice(0,5000),fingerprint:String(s.profileReview.fingerprint||'').slice(0,3000),date:String(s.profileReview.date||'').slice(0,10)};
  if(s.review&&typeof s.review.note==='string')out.review={note:s.review.note.slice(0,3000),stage:String(s.review.stage||'').slice(0,50)};
  out.cases=cleanCases(s.cases);out.activeCase=out.cases.some(c=>c.id===s.activeCase)?s.activeCase:out.cases[0]?.id;

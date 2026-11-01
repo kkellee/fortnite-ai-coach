@@ -13,9 +13,10 @@ export function playerContext(state) {
       period: typeof s.period === 'string' ? s.period.slice(0, 60) : '',
       notes: typeof s.notes === 'string' ? s.notes.slice(0, 180) : ''
     },
+    screenshotReadout: typeof s.screenshotText === 'string' ? s.screenshotText.slice(0, 320) : '',
     trackerLinkSaved: Boolean(p.tracker), osirionLinkSaved: Boolean(p.osirion),
     statsUpdated: typeof s.updated === 'string' ? s.updated : null,
-    provenance: 'Цифры введены игроком и не сверены с внешними сайтами. Ссылки не открывались моделью.'
+    provenance: 'Цифры введены игроком и не сверены; текст скриншота распознан AI и не проверен. Ссылки не открывались.'
   });
 }
 

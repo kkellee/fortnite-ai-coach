@@ -1,8 +1,8 @@
 import {newCase,questions,moveCase,safeLink} from './workflow.mjs?v=20261101-feedback';
 import {putFile,getFile,deleteFile,clearFiles,validateFile} from './evidence.mjs';
-import {dayKey,makePlan,dailyLoad} from './engine.mjs?v=20261101-profile';
+import {dayKey,makePlan,dailyLoad} from './engine.mjs?v=20261101-vision';
 import {AI_ENDPOINT} from './ai-config.mjs';
-import {buildAdviceRequest} from './case-advice.mjs?v=20261101-profile';
+import {buildAdviceRequest} from './case-advice.mjs?v=20261101-vision';
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const names=['Материал','Обсуждение','Практика','Итог'];
 const phases=['material','discussion','practice','complete'];

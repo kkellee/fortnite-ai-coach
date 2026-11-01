@@ -50,3 +50,14 @@ test('failed model call refunds reservation', async () => {
   const success = await worker.fetch(request(sample), { CHAT_QUOTA: quota, AI: { run: async () => ({ response: 'ok' }) } });
   assert.equal((await success.json()).remaining, 9);
 });
+
+test('image route sends a bounded screenshot to vision model and rejects malformed data', async () => {
+  let sent;
+  const env={CHAT_QUOTA:quotaBinding(),AI:{run:async(model,input)=>{sent=input;return {response:'PR: 1234'};}}};
+  const make=body=>new Request('https://example.workers.dev/image',{method:'POST',headers:{Origin:origin,'Content-Type':'application/json','CF-Connecting-IP':'192.0.2.1'},body:JSON.stringify(body)});
+  const valid=await worker.fetch(make({image:'data:image/png;base64,aGVsbG8='}),env);
+  assert.equal(valid.status,200);
+  assert.equal((await valid.json()).answer,'PR: 1234');
+  assert.equal(sent.messages[1].content[1].type,'image_url');
+  assert.equal((await worker.fetch(make({image:'https://untrusted.example/file.png'}),env)).status,400);
+});
