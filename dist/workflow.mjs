@@ -18,7 +18,11 @@ export function questions(c){
 }
 export function moveCase(c,event,data={}){
  const next={...c};
- if(event==='discuss'){
+ if(event==='back'){
+  const target=String(data.to||'');
+  if(!stages.includes(target)||stages.indexOf(target)>=stages.indexOf(c.stage))throw Error('К этому шагу нельзя вернуться.');
+  next.stage=target;
+ }else if(event==='discuss'){
   if(c.stage!=='material'||!c.note.trim())throw Error('Сначала опиши один эпизод или результат.');
   next.stage='discussion';
  }else if(event==='answer'){
