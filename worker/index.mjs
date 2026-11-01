@@ -128,7 +128,7 @@ export default {
     } catch (error) {
       try { await quotaRequest('refund'); } catch {}
       if (globalReserved) try { await globalRequest('finish_global', RESERVATION_NEURONS[kind]); } catch {}
-      if (provider !== 'cloudflare') return json({ error: error.status === 429 ? 'provider_rate_limit' : 'provider_unavailable' }, error.status === 429 ? 429 : 503, headers);
+      if (provider !== 'cloudflare') return json({ error: error.status === 429 ? 'provider_rate_limit' : 'provider_unavailable', provider, upstreamStatus: error.status || null }, error.status === 429 ? 429 : 503, headers);
       const quota = /3036|daily free allocation|quota|limit/i.test(String(error));
       return json({ error: quota ? 'daily_limit' : 'model_unavailable' }, quota ? 429 : 503, headers);
     }

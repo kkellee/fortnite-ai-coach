@@ -125,7 +125,7 @@ test('Gemini takes analyses when configured and does not consume Cloudflare infe
     const analysisRequest = new Request('https://example.workers.dev/analysis', { method: 'POST', headers: { Origin: origin, 'Content-Type': 'application/json', 'CF-Connecting-IP': '192.0.2.1' }, body: JSON.stringify({ ...sample, context: 'Solo' }) });
     const analysis = await worker.fetch(analysisRequest, env);
     assert.equal(analysis.status, 200);
-    assert.equal((await analysis.json()).model, 'gemini-2.5-flash');
+    assert.equal((await analysis.json()).model, 'gemini-3.5-flash-lite');
     assert.equal(sent.key, 'gemini-test-key');
     assert.match(sent.url, /generativelanguage\.googleapis\.com/);
     assert.match(sent.body.systemInstruction.parts[0].text, /Solo/);
