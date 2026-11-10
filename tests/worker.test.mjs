@@ -147,7 +147,7 @@ test('one tournament review sends attached screenshots to Gemini in the same ana
     const req = new Request('https://example.workers.dev/analysis', { method:'POST', headers:{ Origin:origin, 'Content-Type':'application/json', 'CF-Connecting-IP':'192.0.2.1' }, body:JSON.stringify(body) });
     const response = await worker.fetch(req, env);
     assert.equal(response.status,200);
-    assert.equal(sent.generationConfig.maxOutputTokens,800);
+    assert.equal(sent.generationConfig.maxOutputTokens,1200);
     assert.equal(sent.contents[0].parts[2].inlineData.mimeType,'image/jpeg');
     assert.equal(sent.contents[0].parts[2].inlineData.data,'aGVsbG8=');
   } finally { globalThis.fetch = originalFetch; }
