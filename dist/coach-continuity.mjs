@@ -12,7 +12,7 @@ export function coachContext(state, episode = null, checkin = null) {
     player,
     today: checkin ? { sleepHours: checkin.sleep ?? null, energyOfFive: checkin.energy ?? null, minutes: checkin.minutes ?? null } : null,
     episode: c ? { focus: String(c.focus || '').slice(0, 80), description: String(c.note || '').slice(0, 180), playerPlan: String(c.action || '').slice(0, 160), playerOutcome: String(c.outcome || '').slice(0, 160) } : null,
-    tournaments: (s.tournaments || []).slice(0,3).map(t => { const total=tournamentStats(t); return { name:String(t.name || '').slice(0,45), date:t.date, mode:t.mode, format:t.format, games:t.matches.length?total.games:null, points:t.matches.length?total.points:null, kills:t.matches.length?total.kills:null, screenshots:(t.screenshots||[]).map(x=>x.kind) }; }),
+    tournaments: (s.tournaments || []).slice(0,3).map(t => { const total=tournamentStats(t); return { name:String(t.name || '').slice(0,45), date:t.date, mode:t.mode, format:t.format, games:t.matches.length?total.games:null, points:t.matches.length?total.points:null, kills:t.matches.length?total.kills:null, screenshots:(t.screenshots||[]).map(x=>x.kind), playerCorrectedReadout:(t.readout?.games||[]).slice(0,3) }; }),
     continuity: {
       priorAIUnverified: [s.profileReview?.text, c?.aiAdvice, c?.aiOutcomeAdvice, s.tournamentReview?.text].filter(Boolean).map(text => String(text).slice(0, 180)),
       recentChatUnverified: (s.aiMessages || []).filter(m => ['user', 'assistant'].includes(m?.role) && typeof m.text === 'string' && (m.role === 'user' || m.status === 'complete')).slice(-2).map(m => ({ role: m.role, text: m.text.slice(0, 130) }))

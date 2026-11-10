@@ -1,6 +1,6 @@
 import {GENERAL_FOCUS,cleanAI} from './ai-context.mjs';
 import {cleanCases} from './workflow.mjs?v=20261101-feedback';
-import {cleanTournaments} from './tournaments.mjs?v=20261110-shots';
+import {cleanTournaments} from './tournaments.mjs?v=20261110-readout';
 import {exerciseFor} from './practice-catalog.mjs?v=20261101-stepnav';
 export const MODES = ['Battle Royale','Reload'];
 export const TEAMS = ['Solo','Duo','Trio'];

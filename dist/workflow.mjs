@@ -2,6 +2,7 @@
 const str=(v,n=3000)=>typeof v==='string'?v.slice(0,n):'';
 export const stages=['material','discussion','practice','complete'];
 const vague=/^(?:хз|не знаю|непонятно|ок|да|нет|я умер|я постараюсь|постараюсь|буду лучше|не буду умирать|не буду разбиваться|просто разбился)[\s.!?]*$/i;
+export function needsGuidance(value){return /^(?:хз|не знаю|непонятно|не помню|без понятия|не уверен)[\s.!?]*$/i.test(String(value||'').trim());}
 export function usefulAnswer(value,min=24){const text=String(value||'').trim();return text.length>=min&&!vague.test(text)&&!/^я (?:просто )?(?:постараюсь|буду стараться|не буду больше)/i.test(text);}
 export function newCase(profile,id,date){return {id,date,stage:'material',focus:profile.focus,team:profile.team,role:profile.team==='Solo'?'Solo':profile.role,mode:profile.mode,build:profile.build,note:'',answerDraft:'',link:'',action:'',measure:'',outcome:'',next:'',aiAdvice:'',aiOutcomeAdvice:'',answers:[],files:[]};}
 export function cleanCases(value){return (Array.isArray(value)?value:[]).filter(c=>c&&/^[a-zA-Z0-9-]{1,80}$/.test(c.id)&&stages.includes(c.stage)).slice(0,30).map(c=>({id:c.id,date:str(c.date,10),stage:c.stage,focus:str(c.focus,60),team:str(c.team,20),role:str(c.role,30),mode:str(c.mode,30),build:str(c.build,20),note:str(c.note),answerDraft:str(c.answerDraft,2000),link:safeLink(c.link),action:str(c.action,1000),measure:str(c.measure,1000),outcome:str(c.outcome),next:str(c.next,1000),aiAdvice:str(c.aiAdvice,4500),aiOutcomeAdvice:str(c.aiOutcomeAdvice,4500),answers:(Array.isArray(c.answers)?c.answers:[]).filter(x=>typeof x==='string').slice(0,3).map(x=>x.slice(0,2000)),files:(Array.isArray(c.files)?c.files:[]).filter(f=>f&&/^[a-zA-Z0-9-]{1,80}$/.test(f.id)&&typeof f.name==='string'&&Number.isFinite(f.size)&&f.size>=0).slice(0,3).map(f=>({id:f.id,name:str(f.name,200),size:f.size,type:str(f.type,100)}))}));}
@@ -35,7 +36,7 @@ export function moveCase(c,event,data={}){
   if(c.stage!=='discussion'||c.answers.length<1||!usefulAnswer(c.action,35)||!usefulAnswer(c.measure,35))throw Error('Нужно конкретное действие и проверка результата: когда, что сделаешь и какие факты запишешь.');
   next.stage='practice';
  }else if(event==='finish'){
-  if(c.stage!=='practice'||!c.outcome.trim()||!c.next.trim())throw Error('Запиши результат и следующий шаг.');
+  if(c.stage!=='practice'||!usefulAnswer(c.outcome,18)||!usefulAnswer(c.next,18))throw Error('Итог пока слишком общий. Укажи конкретный факт и следующий шаг или нажми «Попросить совет».');
   next.stage='complete';
  }else throw Error('Неизвестный шаг.');
  return next;

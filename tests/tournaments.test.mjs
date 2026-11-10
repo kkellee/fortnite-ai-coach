@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { cleanTournaments, tournamentStats, tournamentReviewRequest } from '../dist/tournaments.mjs';
 import { freshState, parseState } from '../dist/engine.mjs';
+import { parseReadout } from '../dist/tournament-readout.mjs';
 
 const profile = { nick:'Player', mode:'Battle Royale', team:'Solo', build:'Build', role:'IGL', focus:'Файты', minutes:40 };
 const example = id => ({ id, date:'2026-11-01', name:`Cup ${id}`, format:'Solo', teammates:'', note:'Проверял первые файты', matches:[{placement:12,kills:2,points:42,damage:600,teamDamage:null},{placement:4,kills:4,points:75,damage:900,teamDamage:null}], screenshots:[] });
@@ -28,6 +29,15 @@ test('review is unlocked at three complete tournaments and includes all matches'
 test('screenshot tournaments are valid without manually entered games',()=>{
  assert.equal(cleanTournaments([withShots('one')]).length,1);
  assert.equal(cleanTournaments([{...withShots('one'),screenshots:[]}]).length,0);
+});
+test('readable screenshot results can be corrected and survive backup without invented numbers',()=>{
+  const readout=parseReadout('```json\n{"games":[{"placement":5,"kills":2,"points":60,"damage":null,"teamDamage":900},{"placement":"?","kills":1}],"note":"Урон первой игры не виден"}\n```');
+  assert.equal(readout.games[0].damage,null);
+  assert.equal(readout.games[1].placement,null);
+  readout.games[1].placement=8;
+  const restored=parseState({...freshState(),profile,tournaments:[{...withShots('one'),readout}]});
+  assert.equal(restored.tournaments[0].readout.games[1].placement,8);
+  assert.equal(restored.tournaments[0].readout.games[0].damage,null);
 });
 
 
