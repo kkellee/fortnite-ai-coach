@@ -1,5 +1,5 @@
 import {renderAIChat,installAI,mountAI,resetAI} from './ai-chat.mjs?v=20261101-tournaments';
-import {renderWorkspace,installWorkspace,mountWorkspace,releaseWorkspace,resetEvidence} from './workspace.mjs?v=20261101-return';
+import {renderWorkspace,installWorkspace,mountWorkspace,releaseWorkspace,resetEvidence} from './workspace.mjs?v=20261110-episode';
 import {renderLanding} from './landing.mjs?v=20261101-practice';
 import {freshState,parseState,dayKey,validProfile,makePlan,dailyLoad,summary,MODES,TEAMS,ROLES,FOCI} from './engine.mjs?v=20261101-practice';
 import {renderProfilePanel,installProfilePanel,mountProfilePanel} from './profile-panel.mjs?v=20261101-tournaments';
