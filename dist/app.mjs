@@ -3,7 +3,7 @@ import {renderWorkspace,installWorkspace,mountWorkspace,releaseWorkspace,resetEv
 import {renderLanding} from './landing.mjs?v=20261110-visual';
 import {freshState,parseState,dayKey,validProfile,makePlan,dailyLoad,summary,MODES,TEAMS,ROLES,FOCI} from './engine.mjs?v=20261101-practice';
 import {renderProfilePanel,installProfilePanel,mountProfilePanel} from './profile-panel.mjs?v=20261110-visual';
-import {renderTournamentJournal,installTournamentJournal,mountTournamentJournal} from './tournament-journal.mjs?v=20261110-visual';
+import {renderTournamentJournal,installTournamentJournal,mountTournamentJournal} from './tournament-journal.mjs?v=20261112-stats';
 import {dashboardInsight} from './dashboard-insight.mjs';
 import {renderTheory} from './theory.mjs';
 const $=s=>document.querySelector(s),esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
